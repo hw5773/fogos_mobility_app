@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Versatile</string>
+    <string name="action_settings">Settings</string>
+    <string name="title">FogOS Mobility Test Application</string>
+    <string name="hint">검색어를 입력하세요.</string>
+    <string name="search">검색</string>
+</resources>
