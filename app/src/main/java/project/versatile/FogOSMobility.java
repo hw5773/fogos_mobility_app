@@ -3,8 +3,6 @@ package project.versatile;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,12 +73,12 @@ public class FogOSMobility extends AppCompatActivity implements TextView.OnEdito
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(getApplicationContext(), id, Toast.LENGTH_LONG).show();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
 
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
