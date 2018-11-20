@@ -6,88 +6,40 @@ import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.*;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-public class FogOSMobility extends AppCompatActivity implements TextView.OnEditorActionListener {
+import fogos.control.FogOSControl;
 
-    private ListView listView;
+public class FogOSMobility extends AppCompatActivity {
+
     private EditText editSearch;
-    private MyListAdapter myListAdapter;
-    private ArrayList<list_item> list_itemArrayList;
-    private Button searchButton;
+    private String flexIDManager;
+    private FogOSControl control;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_test_app1);
-        editSearch = (EditText) findViewById(R.id.editSearch);
-        editSearch.setOnEditorActionListener(this);
-        listView = (ListView) findViewById(R.id.my_listview);
-
-        list_itemArrayList = new ArrayList<list_item>();
-
-        list_itemArrayList.add(
-                new list_item(R.mipmap.ic_launcher, "보라돌이", "제목1", new Date(System.currentTimeMillis()), "내용1")
-        );
-
-        list_itemArrayList.add(
-                new list_item(R.mipmap.ic_launcher, "뚜비", "제목2", new Date(System.currentTimeMillis()), "내용2")
-        );
-
-        list_itemArrayList.add(
-                new list_item(R.mipmap.ic_launcher, "나나", "제목3", new Date(System.currentTimeMillis()), "내용3")
-        );
-
-        list_itemArrayList.add(
-                new list_item(R.mipmap.ic_launcher, "뽀", "제목4", new Date(System.currentTimeMillis()), "내용4")
-        );
-
-        list_itemArrayList.add(
-                new list_item(R.mipmap.ic_launcher, "햇님", "제목5", new Date(System.currentTimeMillis()), "내용5")
-        );
-
-        myListAdapter = new MyListAdapter(FogOSMobility.this, list_itemArrayList);
-        listView.setAdapter(myListAdapter);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_mobility);
+        editSearch = (EditText) findViewById(R.id.edittext);
+        control = new FogOSControl();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_test_app1, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Toast.makeText(getApplicationContext(), id, Toast.LENGTH_LONG).show();
-            return true;
+    public void onButton1Clicked(View v) {
+        String search = editSearch.getText().toString();
+        JSONArray response = control.queryMessage(search);
+        try {
+            JSONObject obj = response.getJSONObject(0);
+            Toast.makeText(getApplicationContext(), "입력된 검색어: " + search + "\n첫번째 제목: " + obj.getString("title"), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "입력된 검색어: " + search + "\n오류 발생", Toast.LENGTH_LONG).show();
         }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-        if (v.getId() == R.id.editSearch && actionId == EditorInfo.IME_ACTION_DONE)
-        {
-            EditText idEdit = (EditText)findViewById(R.id.editSearch);
-            Toast.makeText(getApplicationContext(), idEdit.getText().toString(), Toast.LENGTH_LONG).show();
-        }
-
-        return false;
     }
 }
