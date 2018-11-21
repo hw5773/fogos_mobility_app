@@ -18,4 +18,12 @@ public class AttrValuePairs {
     String getValueByAttr(String attr) {
         return avps.get(attr);
     }
+
+    public int getNumberOfAVPs() {
+        return numberOfAVPs;
+    }
+
+    public Hashtable<String, String> getAvps() {
+        return avps;
+    }
 }

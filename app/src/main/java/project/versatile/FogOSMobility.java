@@ -2,21 +2,16 @@ package project.versatile;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 
+import flexid.FlexID;
 import fogos.control.FogOSControl;
 
 public class FogOSMobility extends AppCompatActivity {
@@ -31,7 +26,7 @@ public class FogOSMobility extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mobility);
+        setContentView(R.layout.activity_main);
         editSearch = (EditText) findViewById(R.id.edittext);
         listView = (ListView) findViewById(R.id.listView);
 
@@ -41,6 +36,8 @@ public class FogOSMobility extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ListItem item = (ListItem) listAdapter.getItem(position);
+                FlexID peer = item.getFlexID();
+                peer = control.requestConnection(peer);
                 Toast.makeText(getApplicationContext(), "선택: " + item.getTitle(), Toast.LENGTH_LONG).show();
             }
         });
@@ -55,7 +52,7 @@ public class FogOSMobility extends AppCompatActivity {
             JSONObject obj;
             for (int i=0; i<response.length(); i++) {
                 obj = response.getJSONObject(i);
-                listAdapter.addItem(new ListItem(obj.getString("title"), obj.getString("desc")));
+                listAdapter.addItem(new ListItem(obj.getString("title"), obj.getString("desc"), obj.getString("id")));
             }
             listView.setAdapter(listAdapter);
 

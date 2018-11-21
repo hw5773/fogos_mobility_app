@@ -2,13 +2,17 @@ package project.versatile;
 
 import java.util.Date;
 
+import flexid.FlexID;
+
 public class ListItem {
     private String title;
     private String desc;
+    private FlexID flexID;
 
-    public ListItem(String title, String desc) {
+    public ListItem(String title, String desc, String id) {
         this.title = title;
         this.desc = desc;
+        this.flexID = new FlexID(id);
     }
 
     public String getTitle() {
@@ -25,5 +29,11 @@ public class ListItem {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+    public FlexID getFlexID() { return flexID; }
+
+    public void setFlexID(FlexID flexID) {
+        this.flexID = flexID;
     }
 }

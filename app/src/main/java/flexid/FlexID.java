@@ -11,11 +11,16 @@ public class FlexID implements FlexIDInterface {
 
     }
 
+    public FlexID(String id) {
+        identity = id.getBytes();
+    }
+
     public FlexID(byte[] identity, FlexIDType type, AttrValuePairs avps, Locator loc) {
         this.identity = identity;
         this.type = type;
         this.avps = avps;
         this.loc = loc;
+        this.priv = null;
     }
 
     public byte[] getIdentity() {
@@ -42,11 +47,7 @@ public class FlexID implements FlexIDInterface {
         this.avps = avps;
     }
 
-    public Locator getLoc() {
-        return loc;
-    }
-
-    public void setLoc(Locator loc) {
+    public void setLocator(Locator loc) {
         this.loc = loc;
     }
 
@@ -57,11 +58,19 @@ public class FlexID implements FlexIDInterface {
 
     @Override
     public Locator getLocator() {
-        return null;
+        return loc;
     }
 
     @Override
     public void updateLocator(Locator loc) {
 
+    }
+
+    public byte[] getPriv() {
+        return priv;
+    }
+
+    public void setPriv(byte[] priv) {
+        this.priv = priv;
     }
 }
