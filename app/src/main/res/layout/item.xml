@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
-                android:layout_height="100dp" android:id="@+id/RelativeLayout">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
 
-    <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+    android:paddingTop="8pt"
+    android:paddingBottom="8pt"
+    android:paddingLeft="5pt"
+    android:paddingRight="5pt"
 
-        <TextView
-                android:text="text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/title_textview"/>
-        <TextView
-                android:text="하이"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/nickname_textview"/>
-        <TextView
-                android:text="2018-01-01"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/date_textview"/>
-        <TextView
-                android:text="text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:id="@+id/content_textview"/>
-    </LinearLayout>
-</RelativeLayout>
+    android:layout_width="match_parent"
+    android:layout_height="100dp">
+
+    <TextView
+        android:text="제목"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:id="@+id/title"/>
+
+    <TextView
+        android:text="내용"
+        android:textSize="15sp"
+        android:textColor="#000000"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:id="@+id/desc"/>
+
+</LinearLayout>
