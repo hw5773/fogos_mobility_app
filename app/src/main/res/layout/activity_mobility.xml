@@ -17,6 +17,7 @@
         <TextView
             android:text="나의 Flex ID:"
             android:textStyle="bold"
+            android:textColor="#000000"
             android:textSize="18sp"
             android:gravity="center"
             android:layout_width="match_parent"
@@ -25,12 +26,16 @@
         <TextView
             android:id="@+id/textView1"
             android:textSize="16sp"
+            android:textColor="#000000"
+            android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
 
         <TextView
             android:id="@+id/textView2"
             android:textSize="16sp"
+            android:textColor="#000000"
+            android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
 
@@ -49,21 +54,26 @@
             android:text="상대의 Flex ID:"
             android:textStyle="bold"
             android:textSize="18sp"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:textSize="16sp"
+            android:textColor="#000000"
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="20dp" />
 
         <TextView
-            android:id="@+id/textView3"
-            android:textSize="16sp"
-            android:layout_width="match_parent"
-            android:layout_height="18dp" />
-
-        <TextView
             android:id="@+id/textView4"
             android:textSize="16sp"
+            android:textColor="#000000"
+            android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="18dp" />
+            android:layout_height="20dp" />
 
     </LinearLayout>
 
@@ -72,12 +82,14 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:id="@+id/startBtn"
-        android:text="실험 시작" />
+        android:text="실험 시작"
+        android:layout_marginBottom="10dp" />
 
     <View
         android:layout_width="300dp"
         android:layout_height="1dp"
-        android:background="#000000"/>
+        android:background="#000000"
+        android:layout_gravity="center" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -92,9 +104,10 @@
             android:text="로그 내역:"
             android:textStyle="bold"
             android:textSize="18sp"
+            android:textColor="#000000"
             android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="20dp" />
+            android:layout_height="24dp" />
 
         <ListView
             android:id="@+id/logList"

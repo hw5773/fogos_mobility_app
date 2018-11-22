@@ -54,7 +54,11 @@ public class FlexIDData implements Parcelable {
         if (io > 0) {
             inf = InterfaceType.valueOf(src.readString());
             if (inf == InterfaceType.WIFI || inf == InterfaceType.LTE || inf == InterfaceType.ETH) {
+                Log.d(TAG, "Interface is wifi, lte, or eth");
                 loc = new Locator(inf, src.readString(), src.readInt());
+                id.setLocator(loc);
+            } else {
+                Log.d(TAG, "Cannot find the interface: " + inf.name());
             }
         }
     }
@@ -89,7 +93,7 @@ public class FlexIDData implements Parcelable {
         }
 
         Log.d(TAG, "Flex ID Type: " + id.getType());
-        dest.writeString(id.getType().toString());
+        dest.writeString(id.getType().name());
 
         Log.d(TAG, "Number of AVPs: " + id.getAvps().getNumberOfAVPs());
         dest.writeInt(id.getAvps().getNumberOfAVPs());
@@ -115,7 +119,7 @@ public class FlexIDData implements Parcelable {
 
             inf = loc.getType();
             dest.writeInt(1);
-            dest.writeString(inf.toString());
+            dest.writeString(inf.name());
 
             if (inf == InterfaceType.WIFI || inf == InterfaceType.ETH || inf == InterfaceType.LTE) {
                 dest.writeString(loc.getAddr());
