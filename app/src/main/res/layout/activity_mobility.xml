@@ -15,7 +15,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView1"
             android:text="나의 Flex ID:"
             android:textStyle="bold"
             android:textSize="18sp"
@@ -24,13 +23,13 @@
             android:layout_height="20dp" />
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/textView1"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/textView2"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
@@ -47,7 +46,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView4"
             android:text="상대의 Flex ID:"
             android:textStyle="bold"
             android:textSize="18sp"
@@ -56,13 +54,13 @@
             android:layout_height="20dp" />
 
         <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/textView3"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
 
         <TextView
-            android:id="@+id/textView6"
+            android:id="@+id/textView4"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="18dp" />
@@ -79,7 +77,7 @@
     <View
         android:layout_width="300dp"
         android:layout_height="1dp"
-        android:backgroud="#000000"/>
+        android:background="#000000"/>
 
     <LinearLayout
         android:orientation="vertical"
@@ -91,7 +89,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView7"
             android:text="로그 내역:"
             android:textStyle="bold"
             android:textSize="18sp"

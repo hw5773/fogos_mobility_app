@@ -1,10 +1,11 @@
 package flexid;
 
 public enum FlexIDType {
-    DEVICE(0),
-    SERVICE(1),
-    CONTENT(2),
-    GROUP(3);
+    ANY(0),
+    DEVICE(1),
+    SERVICE(2),
+    CONTENT(3),
+    GROUP(4);
 
     private final int type;
 

@@ -1,6 +1,9 @@
 package flexid;
 
+import android.util.Log;
+
 public class FlexID implements FlexIDInterface {
+    private static final String TAG = "FogOSFlexID";
     private byte[] identity;         // The hash value of the public key
     private byte[] priv;             // The private key corresponding to the above public key
     private FlexIDType type;          // The type of Flex ID
@@ -12,7 +15,13 @@ public class FlexID implements FlexIDInterface {
     }
 
     public FlexID(String id) {
+        Log.d(TAG, "Identity in String: " + id);
         identity = id.getBytes();
+        Log.d(TAG, "Identity in byte[]: " + new String(identity));
+        priv = null;
+        type = FlexIDType.ANY;
+        avps = new AttrValuePairs();
+        loc = null;
     }
 
     public FlexID(byte[] identity, FlexIDType type, AttrValuePairs avps, Locator loc) {

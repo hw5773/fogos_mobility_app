@@ -1,7 +1,10 @@
 package project.versatile;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -12,13 +15,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import flexid.FlexID;
+import flexid.FlexIDData;
 import fogos.control.FogOSControl;
 
 public class FogOSMobility extends AppCompatActivity {
+    public static final int REQUEST_CODE_MENU = 101;
+    public static final String KEY_FLEX_ID_DATA = "flex";
+    private static final String TAG = "FogOS";
 
     private EditText editSearch;
     private ListView listView;
-    private String flexIDManager;
     private FogOSControl control;
     private ListAdapter listAdapter;
     private int count = 0;
@@ -35,10 +41,18 @@ public class FogOSMobility extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), MobilityActivity.class);
                 ListItem item = (ListItem) listAdapter.getItem(position);
                 FlexID peer = item.getFlexID();
-                peer = control.requestConnection(peer);
                 Toast.makeText(getApplicationContext(), "선택: " + item.getTitle(), Toast.LENGTH_LONG).show();
+                Log.d(TAG, "After getting the peer's Flex ID");
+                peer = control.requestConnection(peer);
+                Log.d(TAG, "After requesting the connection with the peer's Flex ID");
+                FlexIDData data = new FlexIDData(peer);
+                Log.d(TAG, "After making the peer's Flex ID parcelable");
+                intent.putExtra(KEY_FLEX_ID_DATA, data);
+                Log.d(TAG, "After putting the extra data into the bundle");
+                startActivityForResult(intent, REQUEST_CODE_MENU);
             }
         });
     }

@@ -4,26 +4,26 @@ import java.util.Hashtable;
 
 public class AttrValuePairs {
     int numberOfAVPs;
-    Hashtable<String, String> avps;
+    Hashtable<String, String> table;
 
     public AttrValuePairs() {
         numberOfAVPs = 0;
-        avps = new Hashtable<String, String>();
+        table = new Hashtable<String, String>();
     }
 
     void addAttrValuePair(String attr, String value) {
-        avps.put(attr, value);
+        table.put(attr, value);
     }
 
     String getValueByAttr(String attr) {
-        return avps.get(attr);
+        return table.get(attr);
     }
 
     public int getNumberOfAVPs() {
         return numberOfAVPs;
     }
 
-    public Hashtable<String, String> getAvps() {
-        return avps;
+    public Hashtable<String, String> getTable() {
+        return table;
     }
 }
