@@ -28,23 +28,28 @@ public class FlexIDFactory implements FlexIDFactoryInterface {
     }
 
     public String getLocalIpAddress() {
-        /*
+        String ip = "";
+
         try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        return inetAddress.getHostAddress();
+            Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces();
+
+            while (enumNetworkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = enumNetworkInterfaces.nextElement();
+                Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
+
+                while (enumInetAddress.hasMoreElements()) {
+                    InetAddress inetAddress = enumInetAddress.nextElement();
+
+                    if (inetAddress.isSiteLocalAddress()) {
+                        ip = inetAddress.getHostAddress();
                     }
                 }
             }
-        } catch (SocketException ex) {
-            Log.e(TAG, ex.toString());
+        } catch (SocketException e) {
+            Log.getStackTraceString(e);
         }
-        return null;
-        */
-        return "192.168.0.29";
+
+        return ip;
     }
 
     @Override
