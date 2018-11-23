@@ -1,4 +1,4 @@
-package flexid;
+package project.versatile.flexid;
 
 public class Locator {
     private InterfaceType type;

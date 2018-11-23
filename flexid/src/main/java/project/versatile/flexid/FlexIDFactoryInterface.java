@@ -1,4 +1,4 @@
-package flexid;
+package project.versatile.flexid;
 
 /**
  * This class defines the interface to manage Flex IDs

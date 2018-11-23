@@ -1,8 +1,5 @@
 package project.versatile;
-
-import java.util.Date;
-
-import flexid.FlexID;
+import project.versatile.flexid.FlexID;
 
 public class ListItem {
     private String title;

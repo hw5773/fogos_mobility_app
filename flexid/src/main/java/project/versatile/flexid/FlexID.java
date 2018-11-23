@@ -1,4 +1,4 @@
-package flexid;
+package project.versatile.flexid;
 
 import android.util.Log;
 

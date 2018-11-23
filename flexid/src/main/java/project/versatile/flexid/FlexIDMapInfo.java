@@ -1,4 +1,4 @@
-package flexid;
+package project.versatile.flexid;
 
 /**
  * This class is a map between a FlexID and a locator

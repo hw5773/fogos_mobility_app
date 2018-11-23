@@ -2,7 +2,6 @@ package project.versatile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcel;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -13,12 +12,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-
-import flexid.FlexID;
-import flexid.FlexIDData;
+import project.versatile.flexid.FlexID;
+import project.versatile.flexid.FlexIDData;
 import fogos.control.FogOSControl;
 
-public class FogOSMobility extends AppCompatActivity {
+public class FogOSMobilityClient extends AppCompatActivity {
     public static final int REQUEST_CODE_MENU = 101;
     public static final String KEY_FLEX_ID_DATA = "flex";
     private static final String TAG = "FogOS";

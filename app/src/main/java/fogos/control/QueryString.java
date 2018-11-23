@@ -1,9 +1,8 @@
 package fogos.control;
 
 import org.json.JSONArray;
-
-import flexid.CategoryType;
-import flexid.FlexIDType;
+import project.versatile.flexid.CategoryType;
+import project.versatile.flexid.FlexIDType;
 
 public class QueryString {
     private FlexIDType type;

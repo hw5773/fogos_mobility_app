@@ -1,12 +1,9 @@
 package fogos.control;
 
 import org.json.JSONArray;
-
-import flexid.FlexID;
-import flexid.InterfaceType;
-import flexid.Locator;
-
-import static flexid.InterfaceType.WIFI;
+import project.versatile.flexid.FlexID;
+import project.versatile.flexid.InterfaceType;
+import project.versatile.flexid.Locator;
 
 public class FogOSControl {
     public FogOSControl() {
@@ -40,7 +37,7 @@ public class FogOSControl {
     public FlexID requestConnection(FlexID id) {
         // TODO: Get the address from FogOS Module
 
-        Locator locator = new Locator(InterfaceType.WIFI, "147.46.114.150", 3333);
+        Locator locator = new Locator(InterfaceType.WIFI, "192.168.0.128", 3333);
         id.setLocator(locator);
         return id;
     }
