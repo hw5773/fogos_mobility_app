@@ -4,14 +4,22 @@ import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.DataChannel;
+import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DefaultVideoEncoderFactory;
+import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
+import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RtpReceiver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SdpObserver;
+import org.webrtc.VideoTrack;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -30,22 +38,36 @@ public class FlexIDSocket {
 
     PeerConnectionFactory peerConnectionFactory;
     PeerConnection peerConnection;
+    DataChannel dataChannel;
+    EglBase rootEglBase;
 
     private DataInputStream dIn;
     private DataOutputStream dOut;
 
-    public FlexIDSocket(FlexID flexid, byte[] connid) {
-        try {
-            // convert FlexID to IP address.
-            String IP_addr = flexid.getLocator().getAddr();
+    public FlexIDSocket(FlexID flexid, byte[] connID) {
+        connectToSignallingServer(connID);
+        initializePeerConnectionFactory();
+        initializePeerConnections();
+/*
+            if((dIn = new DataInputStream(socket.getInputStream())) == null)
+                System.exit(0);
+            if((dOut = new DataOutputStream(socket.getOutputStream())) == null)
+                System.exit(0);
+        } catch(Exception e) {
+            Log.getStackTraceString(e);
+        }
+*/
+    }
 
+    private void connectToSignallingServer(byte[] connID) {
+        try {
             socket = IO.socket("http://13.125.93.129:3000");
             socket.connect();
             Log.d(TAG, "connect to signalling server: connect");
 
             socket.on(EVENT_CONNECT, args -> {
                 Log.d(TAG, "connect to signalling server: connect");
-                socket.emit("create or join", new String(connid));
+                socket.emit("create or join", new String(connID));
             }).on("ipaddr", arg -> {
                 Log.d(TAG, "connect to signalling server: ipaddr");
             }).on("created", args -> {
@@ -98,15 +120,97 @@ public class FlexIDSocket {
         } catch (URISyntaxException e) {
             Log.getStackTraceString(e);
         }
-/*
-            if((dIn = new DataInputStream(socket.getInputStream())) == null)
-                System.exit(0);
-            if((dOut = new DataOutputStream(socket.getOutputStream())) == null)
-                System.exit(0);
-        } catch(Exception e) {
-            Log.getStackTraceString(e);
-        }
-*/
+    }
+
+    private void initializePeerConnectionFactory(){
+        PeerConnectionFactory.InitializationOptions initializationOptions = PeerConnectionFactory.InitializationOptions.builder(this).createInitializationOptions();
+        PeerConnectionFactory.initialize(initializationOptions);
+
+        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
+        DefaultVideoEncoderFactory defaultVideoEncoderFactory = new DefaultVideoEncoderFactory(rootEglBase.getEglBaseContext(), true, true);
+        DefaultVideoDecoderFactory defaultVideoDecoderFactory = new DefaultVideoDecoderFactory(rootEglBase.getEglBaseContext());
+        peerConnectionFactory = PeerConnectionFactory.builder().setOptions(options).setVideoDecoderFactory(defaultVideoDecoderFactory).setVideoEncoderFactory(defaultVideoEncoderFactory).createPeerConnectionFactory();
+    }
+
+    private void initializePeerConnections() {
+        peerConnection = createPeerConnection(peerConnectionFactory);
+    }
+
+    private void sendMessage(Object message) {
+        socket.emit("message", message);
+    }
+
+    private PeerConnection createPeerConnection(PeerConnectionFactory peerConnectionFactory) {
+        ArrayList<PeerConnection.IceServer> iceServers = new ArrayList<>();
+        iceServers.add(PeerConnection.IceServer.builder("stun:stun.I.google.com:19302").createIceServer());
+        PeerConnection.RTCConfiguration rtcConfiguration = new PeerConnection.RTCConfiguration(iceServers);
+        PeerConnection.Observer observer = new PeerConnection.Observer() {
+            @Override
+            public void onSignalingChange(PeerConnection.SignalingState signalingState) {
+
+            }
+
+            @Override
+            public void onIceConnectionChange(PeerConnection.IceConnectionState iceConnectionState) {
+
+            }
+
+            @Override
+            public void onIceConnectionReceivingChange(boolean b) {
+
+            }
+
+            @Override
+            public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {
+
+            }
+
+            @Override
+            public void onIceCandidate(IceCandidate iceCandidate) {
+                JSONObject message = new JSONObject();
+
+                try {
+                    message.put("type", "candidate");
+                    message.put("label", iceCandidate.sdpMLineIndex);
+                    message.put("id", iceCandidate.sdpMid);
+                    message.put("candidate", iceCandidate.sdp);
+                    sendMessage(message);
+                } catch (JSONException e) {
+                    Log.getStackTraceString(e);
+                }
+            }
+
+            @Override
+            public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {
+
+            }
+
+            @Override
+            public void onAddStream(MediaStream mediaStream) {
+
+            }
+
+            @Override
+            public void onRemoveStream(MediaStream mediaStream) {
+
+            }
+
+            @Override
+            public void onDataChannel(DataChannel dataChannel) {
+
+            }
+
+            @Override
+            public void onRenegotiationNeeded() {
+
+            }
+
+            @Override
+            public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
+
+            }
+        };
+        return peerConnectionFactory.createPeerConnection(rtcConfiguration, observer);
     }
 
     public FlexIDSocket(Socket sock) {
