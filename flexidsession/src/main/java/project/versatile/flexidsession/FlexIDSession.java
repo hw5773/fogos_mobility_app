@@ -2,14 +2,13 @@ package project.versatile.flexidsession;
 
 import android.util.Log;
 
-import java.io.DataOutputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.net.*;
 
 import project.versatile.flexid.FlexID;
+import io.socket.client.Socket;
 
 /**
  * FlexID socket
@@ -34,7 +33,7 @@ public class FlexIDSession implements Serializable {
     private CircularQueue rbuf;
     private CircularQueue wbuf;
 
-    FlexIDSocket socket;
+    Socket socket;
     private Thread inThread;
     private Thread outThread;
 
@@ -57,9 +56,9 @@ public class FlexIDSession implements Serializable {
         rbuf = new CircularQueue();
         wbuf = new CircularQueue();
         if(sock != null)
-            socket = sock;
+            socket = sock.getSocket();
         else
-            socket = new FlexIDSocket(DFID); // TODO: Get port #
+            socket = new FlexIDSocket(DFID, connID).getSocket(); // TODO: Get port #
 
         inThread = new Thread(new inbound());
         inThread.setDaemon(true);
@@ -102,6 +101,7 @@ public class FlexIDSession implements Serializable {
             return mLen;
         }
     }
+
     // Application receive
     public int receive(byte[] b) {
         int bLen = rbuf.read(b);
