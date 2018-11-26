@@ -1,5 +1,7 @@
 package project.versatile.flexidsession;
 
+import android.util.Log;
+
 import java.io.*;
 import java.net.*;
 
@@ -11,20 +13,19 @@ public class FlexIDSocket {
     private DataInputStream dIn;
     private DataOutputStream dOut;
 
-    public FlexIDSocket(FlexID flexid, int port) {
+    public FlexIDSocket(FlexID flexid) {
         try {
             // convert FlexID to IP address.
             String IP_addr = flexid.getLocator().getAddr();
 
-            socket = new Socket(IP_addr, port);
+            socket = new Socket(IP_addr, flexid.getLocator().getPort());
 
             if((dIn = new DataInputStream(socket.getInputStream())) == null)
                 System.exit(0);
             if((dOut = new DataOutputStream(socket.getOutputStream())) == null)
                 System.exit(0);
-
         } catch(Exception e) {
-            e.printStackTrace();
+            Log.getStackTraceString(e);
         }
     }
     public FlexIDSocket(Socket sock) {
@@ -33,7 +34,7 @@ public class FlexIDSocket {
             dIn = new DataInputStream(socket.getInputStream());
             dOut = new DataOutputStream(socket.getOutputStream());
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.getStackTraceString(e);
         }
     }
 

@@ -23,6 +23,7 @@ import java.util.TimerTask;
 import project.versatile.flexid.FlexID;
 import project.versatile.flexid.FlexIDData;
 import project.versatile.flexid.FlexIDFactory;
+import project.versatile.flexidsession.FlexIDSession;
 
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";
@@ -31,6 +32,7 @@ public class MobilityActivity extends AppCompatActivity {
     private Timer timer;
 
     FlexID myID, peer;
+    FlexIDSession session;
     Boolean flag = false;
     int test = 0;
 
@@ -43,6 +45,7 @@ public class MobilityActivity extends AppCompatActivity {
     FlexIDFactory factory;
     LogListAdapter logListAdapter;
     BackgroundThread backgroundThread;
+    ReceiverThread receiverThread;
 
     private final LogHandler logHandler = new LogHandler(this);
 
@@ -100,9 +103,13 @@ public class MobilityActivity extends AppCompatActivity {
             backgroundThread = new BackgroundThread();
             backgroundThread.setRunning(true);
             backgroundThread.start();
-            Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
 
-            // TODO: Make a connection to the server
+            session = new FlexIDSession(myID, peer);
+            receiverThread = new ReceiverThread();
+            receiverThread.setRunning(true);
+            receiverThread.start();
+
+            Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
         }
         else {
             flag = false;
@@ -224,6 +231,30 @@ public class MobilityActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 logHandler.sendMessage(logHandler.obtainMessage());
+            }
+        }
+    }
+
+    public class ReceiverThread extends Thread {
+        boolean running = false;
+
+        void setRunning(boolean b) { running = b; }
+
+        @Override
+        public void run() {
+            int recv = -1, limit = 0;
+            byte b[] = new byte[1024];
+
+            while (recv < 0)
+                recv = session.receive(b);
+
+            limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
+
+            while (running) {
+                recv += session.receive(b);
+
+                if (recv >= limit)
+                    running = true;
             }
         }
     }

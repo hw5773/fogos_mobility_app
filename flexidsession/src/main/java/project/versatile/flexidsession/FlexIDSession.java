@@ -1,7 +1,11 @@
 package project.versatile.flexidsession;
 
+import android.util.Log;
+
 import java.io.DataOutputStream;
 import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.net.*;
 
@@ -27,7 +31,6 @@ public class FlexIDSession implements Serializable {
     private int recvSEQ;
     private int sentACK; // send ACK for receiving data
 
-
     private CircularQueue rbuf;
     private CircularQueue wbuf;
 
@@ -38,7 +41,15 @@ public class FlexIDSession implements Serializable {
     public FlexIDSession(FlexID sFID, FlexID dFID, FlexIDSocket sock) {
         SFID = sFID;
         DFID = dFID;
-        connID = new byte[20]; // TODO: Generate with FlexIDs.
+
+        try {
+            MessageDigest sh = MessageDigest.getInstance("SHA-1");
+            sh.update(sFID.getIdentity());
+            sh.update(dFID.getIdentity());
+            connID = sh.digest();
+        } catch (NoSuchAlgorithmException e) {
+            Log.getStackTraceString(e);
+        }
 
         sentSEQ = 0;
         sentACK = 0;
@@ -48,7 +59,7 @@ public class FlexIDSession implements Serializable {
         if(sock != null)
             socket = sock;
         else
-            socket = new FlexIDSocket(DFID, DFID.getLocator().getPort()); // TODO: Get port #
+            socket = new FlexIDSocket(DFID); // TODO: Get port #
 
         inThread = new Thread(new inbound());
         inThread.setDaemon(true);
@@ -71,8 +82,8 @@ public class FlexIDSession implements Serializable {
         }
 
         System.out.println("Connected.");
-        FlexID sFID = new FlexID(); // ?
-        FlexID dFID = new FlexID(); // ?
+        FlexID sFID = new FlexID();
+        FlexID dFID = new FlexID();
 
         return new FlexIDSession(sFID, dFID, sock);
     }
@@ -202,6 +213,23 @@ public class FlexIDSession implements Serializable {
                         //checkAddress();	// TODO
 						/* if ip changed, creates new FlexIDSocket, connects,
 						   and retransmits the last message if necessary(stop-and-wait)   */
+
+                        /* only for server which sends a data */
+//						if (checkAddress()) {
+//							port = new port;
+//							FlexIDServerSocket server = new FlexIDServerSocket(port);
+//							System.out.println("Server waits a connections.");
+//							FlexIDSocket sock = server.accept();
+//							System.out.println("Connected.");
+//
+//							FlexID sFID = new FlexID(); // pseudo code for test
+//							FlexID dFID = new FlexID(); // pseudo code for test
+//							connID = new connID(); // pseudo code for test
+//
+//							socket = sock;
+//						}
+
+
                         if(retransmission == true) {
                             socket.write(message); // stop-and-wait
                             lock = 0;
@@ -306,4 +334,5 @@ public class FlexIDSession implements Serializable {
         DFID = dFID;
     }
 }
+
 
