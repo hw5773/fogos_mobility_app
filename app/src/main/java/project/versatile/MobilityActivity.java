@@ -32,12 +32,13 @@ public class MobilityActivity extends AppCompatActivity {
 
     FlexID myID, peer;
     Boolean flag = false;
+    int test = 0;
 
-    TextView textView1; // My Flex ID
-    TextView textView2; // My IP address
-    TextView textView3; // Peer's Flex ID
-    TextView textView4; // Peer's IP address
-    Button startBtn;    // Start Button
+    TextView textView1;     // My Flex ID
+    TextView textView2;     // My IP address
+    TextView textView3;     // Peer's Flex ID
+    TextView textView4;     // Peer's IP address
+    Button startBtn;        // Start Button
     ListView logListView;
     FlexIDFactory factory;
     LogListAdapter logListAdapter;
@@ -157,7 +158,14 @@ public class MobilityActivity extends AppCompatActivity {
     // Get a new item for the listview
     private void handleMessage(Message msg) {
         // TODO: Add a new item to the list.
-        logListAdapter.addItem(new LogItem(LogType.DATA, 1.2, "192.168.0.1", "192.168.0.2"));
+        if (test == 0) {
+            logListAdapter.addItem(new LogItem(LogType.DATA, 12, peer.getLocator().getAddr(), myID.getLocator().getAddr()));
+            test++;
+        } else if (test == 1) {
+            textView2.setText("192.168.1.2");
+            logListAdapter.addItem(new LogItem(LogType.REBINDING, 15.3, myID.getLocator().getAddr(), "192.168.1.2"));
+            test++;
+        }
         logListView.setAdapter(logListAdapter);
     }
 
