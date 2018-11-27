@@ -1,7 +1,5 @@
 package project.versatile;
 
-import android.util.Log;
-
 public class LogItem {
     private LogType type;
     private double value;

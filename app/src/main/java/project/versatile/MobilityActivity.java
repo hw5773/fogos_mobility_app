@@ -20,10 +20,9 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import project.versatile.flexid.FlexID;
-import project.versatile.flexid.FlexIDData;
-import project.versatile.flexid.FlexIDFactory;
-import project.versatile.flexidsession.FlexIDSession;
+import versatile.flexid.FlexID;
+import versatile.flexid.FlexIDFactory;
+import versatile.flexidsession.FlexIDSession;
 
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";

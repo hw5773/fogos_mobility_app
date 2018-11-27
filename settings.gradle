@@ -1,1 +1,1 @@
-include ':app', ':flexid'
+include ':app'

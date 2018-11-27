@@ -12,9 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import project.versatile.flexid.FlexID;
-import project.versatile.flexid.FlexIDData;
 import fogos.control.FogOSControl;
+import versatile.flexid.FlexID;
 
 public class FogOSMobilityClient extends AppCompatActivity {
     public static final int REQUEST_CODE_MENU = 101;

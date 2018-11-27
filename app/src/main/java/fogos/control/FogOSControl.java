@@ -1,9 +1,9 @@
 package fogos.control;
 
 import org.json.JSONArray;
-import project.versatile.flexid.FlexID;
-import project.versatile.flexid.InterfaceType;
-import project.versatile.flexid.Locator;
+import versatile.flexid.FlexID;
+import versatile.flexid.InterfaceType;
+import versatile.flexid.Locator;
 
 public class FogOSControl {
     public FogOSControl() {

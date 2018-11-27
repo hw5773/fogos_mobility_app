@@ -1,5 +1,5 @@
 package project.versatile;
-import project.versatile.flexid.FlexID;
+import versatile.flexid.FlexID;
 
 public class ListItem {
     private String title;
