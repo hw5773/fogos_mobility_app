@@ -37,7 +37,7 @@ public class FogOSControl {
     public FlexID requestConnection(FlexID id) {
         // TODO: Get the address from FogOS Module
 
-        Locator locator = new Locator(InterfaceType.WIFI, "192.168.0.128", 3333);
+        Locator locator = new Locator(InterfaceType.WIFI, "147.46.216.213", 3335);
         id.setLocator(locator);
         return id;
     }

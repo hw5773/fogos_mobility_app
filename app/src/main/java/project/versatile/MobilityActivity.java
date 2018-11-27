@@ -31,7 +31,6 @@ public class MobilityActivity extends AppCompatActivity {
     private Timer timer;
 
     FlexID myID, peer;
-    FlexIDSession session;
     Boolean flag = false;
     int test = 0;
 
@@ -95,17 +94,27 @@ public class MobilityActivity extends AppCompatActivity {
     // Function that is invoked when the button is clicked
     public void onButton2Clicked(View v) {
         if (flag == false) {
+            Log.d(TAG, "실험 시작");
             flag = true;
             startBtn.setText("실험 종료");
 
             // Init the thread to invoke the handleMessage periodically
+            Log.d(TAG, "백그라운드 쓰레드 시작");
             backgroundThread = new BackgroundThread();
             backgroundThread.setRunning(true);
             backgroundThread.start();
 
-            session = new FlexIDSession(myID, peer);
+            Log.d(TAG, "세션 초기화");
+            Log.d(TAG, "나의 IP: " + myID.getLocator().getAddr());
+            Log.d(TAG, "나의 Port: " + myID.getLocator().getPort());
+            Log.d(TAG, "상대의 IP: " + peer.getLocator().getAddr());
+            Log.d(TAG, "상대의 Port: " + peer.getLocator().getPort());
+
+            Log.d(TAG, "세션 생성 성공");
             receiverThread = new ReceiverThread();
+            Log.d(TAG, "수신 쓰레드");
             receiverThread.setRunning(true);
+            Log.d(TAG, "수신 쓰레드 시작");
             receiverThread.start();
 
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
@@ -227,20 +236,21 @@ public class MobilityActivity extends AppCompatActivity {
                 try {
                     sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.getStackTraceString(e);
                 }
                 logHandler.sendMessage(logHandler.obtainMessage());
             }
         }
     }
 
-    public class ReceiverThread extends Thread {
+    class ReceiverThread extends Thread {
         boolean running = false;
 
         void setRunning(boolean b) { running = b; }
 
         @Override
         public void run() {
+            FlexIDSession session = new FlexIDSession(myID, peer);
             int recv = -1, limit = 0;
             byte b[] = new byte[1024];
 
