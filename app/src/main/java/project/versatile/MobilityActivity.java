@@ -191,16 +191,16 @@ public class MobilityActivity extends AppCompatActivity {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         String ssid = wifiInfo.getSSID();
-        String newSsid = "mmlab2";
-        String pass = "mmlab2017";
+        String newSsid = "tls-ec";
+        String pass = "mmlab2015";
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + newSsid + "\"";
         conf.preSharedKey = "\"" + pass + "\"";
 
-        int ret = wifiManager.addNetwork(conf);
+        //int ret = wifiManager.updateNetwork(conf);
 
         Log.d(TAG, "Current SSID: " + ssid);
-        Log.d(TAG, "Return Value: " + ret);
+        //Log.d(TAG, "Return Value: " + ret);
 
         List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
 
@@ -223,12 +223,12 @@ public class MobilityActivity extends AppCompatActivity {
     private void handleMessage(Message msg) {
         // TODO: Add a new item to the list.
         if (test == 0) {
-            logListAdapter.addItem(new LogItem(LogType.DATA, 12, peer.getLocator().getAddr(), myID.getLocator().getAddr()));
+            logListAdapter.addItem(new LogItem(LogType.DATA, 2048, peer.getLocator().getAddr(), myID.getLocator().getAddr()));
             test++;
             changeWifiSetting();
         } else if (test == 1) {
             textView2.setText("192.168.1.2");
-            logListAdapter.addItem(new LogItem(LogType.REBINDING, 15.3, myID.getLocator().getAddr(), "192.168.1.2"));
+            logListAdapter.addItem(new LogItem(LogType.REBINDING, 82, myID.getLocator().getAddr(), "192.168.1.2"));
             test++;
         } else {
             // Toast.makeText(getApplicationContext(), "Test", Toast.LENGTH_LONG).show();
@@ -286,7 +286,7 @@ public class MobilityActivity extends AppCompatActivity {
         public void run() {
             while (running) {
                 try {
-                    sleep(3000);
+                    sleep(1000);
                 } catch (InterruptedException e) {
                     Log.getStackTraceString(e);
                 }
