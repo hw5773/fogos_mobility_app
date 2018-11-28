@@ -1,6 +1,12 @@
 package project.versatile;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,6 +23,7 @@ import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,6 +34,7 @@ import versatile.flexidsession.FlexIDSession;
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";
     private static int counter = 0;
+    private static boolean ready = false;
     private TimerTask task;
     private Timer timer;
 
@@ -41,9 +49,11 @@ public class MobilityActivity extends AppCompatActivity {
     Button startBtn;        // Start Button
     ListView logListView;
     FlexIDFactory factory;
+    FlexIDSession session;
     LogListAdapter logListAdapter;
     BackgroundThread backgroundThread;
     ReceiverThread receiverThread;
+    ReadyThread readyThread;
 
     private final LogHandler logHandler = new LogHandler(this);
 
@@ -117,6 +127,9 @@ public class MobilityActivity extends AppCompatActivity {
             Log.d(TAG, "수신 쓰레드 시작");
             receiverThread.start();
 
+            readyThread = new ReadyThread();
+            readyThread.start();
+
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
         }
         else {
@@ -170,16 +183,55 @@ public class MobilityActivity extends AppCompatActivity {
         Log.d(TAG, "process log");
     }
 
+    public static void setReady(boolean ready) {
+        MobilityActivity.ready = ready;
+    }
+
+    private void changeWifiSetting() {
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        String ssid = wifiInfo.getSSID();
+        String newSsid = "mmlab2";
+        String pass = "mmlab2017";
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + newSsid + "\"";
+        conf.preSharedKey = "\"" + pass + "\"";
+
+        int ret = wifiManager.addNetwork(conf);
+
+        Log.d(TAG, "Current SSID: " + ssid);
+        Log.d(TAG, "Return Value: " + ret);
+
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+
+        if (list == null) {
+            Log.d(TAG, "Returned null");
+        } else {
+            for (WifiConfiguration i : list) {
+                if (i.SSID != null && i.SSID.equals("\"" + newSsid + "\"")) {
+                    wifiManager.disconnect();
+                    wifiManager.enableNetwork(i.networkId, true);
+                    wifiManager.reconnect();
+
+                    break;
+                }
+            }
+        }
+    }
+
     // Get a new item for the listview
     private void handleMessage(Message msg) {
         // TODO: Add a new item to the list.
         if (test == 0) {
             logListAdapter.addItem(new LogItem(LogType.DATA, 12, peer.getLocator().getAddr(), myID.getLocator().getAddr()));
             test++;
+            changeWifiSetting();
         } else if (test == 1) {
             textView2.setText("192.168.1.2");
             logListAdapter.addItem(new LogItem(LogType.REBINDING, 15.3, myID.getLocator().getAddr(), "192.168.1.2"));
             test++;
+        } else {
+            // Toast.makeText(getApplicationContext(), "Test", Toast.LENGTH_LONG).show();
         }
         logListView.setAdapter(logListAdapter);
     }
@@ -234,12 +286,23 @@ public class MobilityActivity extends AppCompatActivity {
         public void run() {
             while (running) {
                 try {
-                    sleep(1000);
+                    sleep(3000);
                 } catch (InterruptedException e) {
                     Log.getStackTraceString(e);
                 }
                 logHandler.sendMessage(logHandler.obtainMessage());
             }
+        }
+    }
+
+    class ReadyThread extends Thread {
+        @Override
+        public void run() {
+            System.out.println("Ready Thread is started.");
+            while (ready == false) {}
+            System.out.println("ready is set to true.");
+            if (session != null)
+                session.setReady(true);
         }
     }
 
@@ -250,7 +313,7 @@ public class MobilityActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            FlexIDSession session = new FlexIDSession(myID, peer);
+            session = new FlexIDSession(myID, peer);
             int recv = -1, limit = 0;
             byte b[] = new byte[1024];
 
