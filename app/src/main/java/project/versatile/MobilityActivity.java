@@ -30,6 +30,9 @@ import java.util.TimerTask;
 import versatile.flexid.FlexID;
 import versatile.flexid.FlexIDFactory;
 import versatile.flexidsession.FlexIDSession;
+import versatile.flexidsession.LogItem;
+import versatile.flexidsession.LogType;
+import versatile.flexidsession.SessionLogger;
 
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";
@@ -37,10 +40,13 @@ public class MobilityActivity extends AppCompatActivity {
     private static boolean ready = false;
     private TimerTask task;
     private Timer timer;
+    String prevIP;
 
     FlexID myID, peer;
-    Boolean flag = false;
+    boolean flag = false;
+    boolean change = false;
     int test = 0;
+    SessionLogger sessionLogger;
 
     TextView textView1;     // My Flex ID
     TextView textView2;     // My IP address
@@ -108,26 +114,30 @@ public class MobilityActivity extends AppCompatActivity {
             flag = true;
             startBtn.setText("실험 종료");
 
-            // Init the thread to invoke the handleMessage periodically
-            Log.d(TAG, "백그라운드 쓰레드 시작");
-            backgroundThread = new BackgroundThread();
-            backgroundThread.setRunning(true);
-            backgroundThread.start();
-
             Log.d(TAG, "세션 초기화");
             Log.d(TAG, "나의 IP: " + myID.getLocator().getAddr());
             Log.d(TAG, "나의 Port: " + myID.getLocator().getPort());
             Log.d(TAG, "상대의 IP: " + peer.getLocator().getAddr());
             Log.d(TAG, "상대의 Port: " + peer.getLocator().getPort());
 
+            prevIP = myID.getLocator().getAddr();
+
             Log.d(TAG, "세션 생성 성공");
             receiverThread = new ReceiverThread();
             Log.d(TAG, "수신 쓰레드");
             receiverThread.setRunning(true);
             Log.d(TAG, "수신 쓰레드 시작");
-            receiverThread.start();
 
+            // Init the thread to invoke the handleMessage periodically
+            Log.d(TAG, "백그라운드 쓰레드 시작");
+            backgroundThread = new BackgroundThread();
+            backgroundThread.setRunning(true);
+
+            Log.d(TAG, "WiFi 모니터링 쓰레드 시작");
             readyThread = new ReadyThread();
+
+            receiverThread.start();
+            backgroundThread.start();
             readyThread.start();
 
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
@@ -191,7 +201,7 @@ public class MobilityActivity extends AppCompatActivity {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         String ssid = wifiInfo.getSSID();
-        String newSsid = "tls-ec";
+        String newSsid = "FogOS2";
         String pass = "mmlab2015";
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + newSsid + "\"";
@@ -209,38 +219,54 @@ public class MobilityActivity extends AppCompatActivity {
         } else {
             for (WifiConfiguration i : list) {
                 if (i.SSID != null && i.SSID.equals("\"" + newSsid + "\"")) {
+                    Toast.makeText(getApplicationContext(), "Device is disconnecting from FogOS1", Toast.LENGTH_LONG).show();
                     wifiManager.disconnect();
                     wifiManager.enableNetwork(i.networkId, true);
+                    Toast.makeText(getApplicationContext(), "Device is connecting to FogOS2", Toast.LENGTH_LONG).show();
                     wifiManager.reconnect();
-
                     break;
                 }
             }
+            // Toast.makeText(getApplicationContext(), "Now send MapUpdate message to Peer and Flex ID Manager", Toast.LENGTH_LONG).show();
         }
     }
 
     // Get a new item for the listview
     private void handleMessage(Message msg) {
-        // TODO: Add a new item to the list.
-        if (test == 0) {
-            logListAdapter.addItem(new LogItem(LogType.DATA, 2048, peer.getLocator().getAddr(), myID.getLocator().getAddr()));
-            test++;
-            changeWifiSetting();
-        } else if (test == 1) {
-            textView2.setText("192.168.1.2");
-            logListAdapter.addItem(new LogItem(LogType.REBINDING, 82, myID.getLocator().getAddr(), "192.168.1.2"));
-            test++;
+        int numOfLog = 0;
+        if (sessionLogger == null) {
+            Log.d(TAG, "SessionLogger is null");
         } else {
-            // Toast.makeText(getApplicationContext(), "Test", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "Finding the log");
+            numOfLog = sessionLogger.getNumOfLog();
+            Log.d(TAG, "Number of Log: " + numOfLog);
+
+            if (numOfLog > 0) {
+                LogItem item;
+                for (int i=0; i<numOfLog; i++) {
+                    Log.d(TAG, "Logger in index: " + i);
+                    item = sessionLogger.getSessionLog();
+                    logListAdapter.addItem(item);
+                    if (item.getType() == LogType.REBINDING) {
+                        textView2.setText(item.getTo());
+                    }
+                }
+
+                // Test Code: Changing the AP to the other one.
+                if ((change == false) && (logListAdapter.getCount() > 0)) {
+                    changeWifiSetting();
+                    change = true;
+                }
+                logListView.setAdapter(logListAdapter);
+            }
         }
-        logListView.setAdapter(logListAdapter);
     }
 
     class LogListAdapter extends BaseAdapter {
         ArrayList<LogItem> itemArray = new ArrayList<LogItem>();
 
         public void addItem(LogItem item) {
-            itemArray.add(item);
+            itemArray.add(0, item);
         }
 
         public void delAllItem() {
@@ -300,7 +326,7 @@ public class MobilityActivity extends AppCompatActivity {
         public void run() {
             System.out.println("Ready Thread is started.");
             while (ready == false) {}
-            System.out.println("ready is set to true.");
+            System.out.println("Ready is set to true.");
             if (session != null)
                 session.setReady(true);
         }
@@ -313,7 +339,9 @@ public class MobilityActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            session = new FlexIDSession(myID, peer);
+            session = new FlexIDSession(myID, peer, null, true);
+            sessionLogger = session.getSessionLogger();
+
             int recv = -1, limit = 0;
             byte b[] = new byte[1024];
 
