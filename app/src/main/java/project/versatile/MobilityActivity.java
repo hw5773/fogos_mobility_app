@@ -76,6 +76,7 @@ public class MobilityActivity extends AppCompatActivity {
         factory = new FlexIDFactory();
 
         // TODO: Should be changed to view the video
+        // TODO: How can we integrate this activity with the exo-player?
 
         Log.d(TAG, "Before mapping the textView variables to the TextView resources");
         textView1 = (TextView) findViewById(R.id.textView1);
