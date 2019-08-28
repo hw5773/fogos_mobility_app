@@ -1,9 +1,14 @@
 package project.versatile;
 
+import FlexID.FlexID;
+import FlexID.FlexIDFactory;
+import FogOSSocket.FlexIDSession;
+import FogOSSocket.SessionLogger;
+import FogOSSocket.LogItem;
+import FogOSSocket.LogType;
+
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -27,12 +32,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import versatile.flexid.FlexID;
-import versatile.flexid.FlexIDFactory;
-import versatile.flexidsession.FlexIDSession;
-import versatile.flexidsession.LogItem;
-import versatile.flexidsession.LogType;
-import versatile.flexidsession.SessionLogger;
 
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";
@@ -75,6 +74,8 @@ public class MobilityActivity extends AppCompatActivity {
 
         Log.d(TAG, "Before constructing the Flex ID factory");
         factory = new FlexIDFactory();
+
+        // TODO: Should be changed to view the video
 
         Log.d(TAG, "Before mapping the textView variables to the TextView resources");
         textView1 = (TextView) findViewById(R.id.textView1);
@@ -168,7 +169,7 @@ public class MobilityActivity extends AppCompatActivity {
             Log.d(TAG, "Getting the bundle");
 
             try {
-                FlexIDData data = (FlexIDData) bundle.getParcelable(KEY_FLEX_ID_DATA);
+                FlexIDParcel data = (FlexIDParcel) bundle.getParcelable(KEY_FLEX_ID_DATA);
                 Log.d(TAG, "Getting the data");
                 peer = data.getId();
                 Log.d(TAG, "Getting the Flex ID");

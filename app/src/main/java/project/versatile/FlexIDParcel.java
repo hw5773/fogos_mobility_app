@@ -1,5 +1,11 @@
 package project.versatile;
 
+import FlexID.FlexID;
+import FlexID.AttrValuePairs;
+import FlexID.InterfaceType;
+import FlexID.Locator;
+import FlexID.FlexIDType;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -7,22 +13,18 @@ import android.util.Log;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-import versatile.flexid.AttrValuePairs;
-import versatile.flexid.FlexID;
-import versatile.flexid.FlexIDType;
-import versatile.flexid.InterfaceType;
-import versatile.flexid.Locator;
 
-public class FlexIDData implements Parcelable {
+
+public class FlexIDParcel implements Parcelable {
     private static final String TAG="FogOSData";
     private FlexID id;
 
-    public FlexIDData(FlexID id)
+    public FlexIDParcel(FlexID id)
     {
         this.id = id;
     }
 
-    public FlexIDData(Parcel src) {
+    public FlexIDParcel(Parcel src) {
         id = new FlexID();
         byte[] identity;
         byte[] priv;
@@ -70,12 +72,12 @@ public class FlexIDData implements Parcelable {
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
-        public FlexIDData createFromParcel(Parcel in) {
-            return new FlexIDData(in);
+        public FlexIDParcel createFromParcel(Parcel in) {
+            return new FlexIDParcel(in);
         }
 
-        public FlexIDData[] newArray(int size) {
-            return new FlexIDData[size];
+        public FlexIDParcel[] newArray(int size) {
+            return new FlexIDParcel[size];
         }
     };
 

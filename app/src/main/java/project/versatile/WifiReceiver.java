@@ -10,6 +10,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -37,8 +38,8 @@ public class WifiReceiver extends BroadcastReceiver {
             Log.d(TAG, "Wifi Enabled");
 
             boolean configured = false;
-            String networkSSID = "mmlab2";
-            String networkPass = "mmlab2017";
+            String networkSSID = "FogOS2";
+            String networkPass = "mmlab2015";
 
             WifiConfiguration conf = new WifiConfiguration();
             conf.SSID = "\"" + networkSSID + "\"";
