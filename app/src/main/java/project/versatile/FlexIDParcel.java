@@ -26,6 +26,7 @@ public class FlexIDParcel implements Parcelable {
 
     public FlexIDParcel(Parcel src) {
         id = new FlexID();
+        String sidentity;
         byte[] identity;
         byte[] priv;
         int len, numOfAVPs, io;

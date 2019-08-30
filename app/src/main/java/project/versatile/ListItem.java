@@ -6,7 +6,7 @@ public class ListItem {
     private String desc;
     private FlexID flexID;
 
-    public ListItem(String title, String desc, String id) {
+    public ListItem(String title, String desc, byte[] id) {
         this.title = title;
         this.desc = desc;
         this.flexID = new FlexID(id);

@@ -6,6 +6,7 @@ import FogOSMessage.QueryMessage;
 import FogOSMessage.ReplyMessage;
 import FogOSMessage.RequestMessage;
 import FogOSMessage.ResponseMessage;
+import FogOSMessage.ReplyEntry;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -35,6 +35,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d(TAG, "Start Test Application");
         fogos = new FogOSClient();
 
         // Generate the list with the search bar
@@ -56,7 +57,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 requestMessage = fogos.makeRequestMessage(peer);
                 responseMessage = fogos.sendRequestMessage(requestMessage);
                 peer = responseMessage.getPeerID();
-                Log.d(TAG, "After requesting the connection with the peer's Flex ID");
+                Log.d(TAG, "After requesting the connection with the peer's Flex ID: " + peer.getStringIdentity() + "IP: " + peer.getLocator().getAddr() + " / Port: " + peer.getLocator().getPort());
                 FlexIDParcel data = new FlexIDParcel(peer);
                 Log.d(TAG, "After making the peer's Flex ID parcelable");
                 intent.putExtra(KEY_FLEX_ID_DATA, data);
@@ -69,30 +70,38 @@ public class FogOSMobilityClient extends AppCompatActivity {
     }
 
     public void onButton1Clicked(View v) {
+        Log.d(TAG, "Button1 Clicked");
         QueryMessage queryMessage;
         ReplyMessage replyMessage;
         String keywords;
-        JSONArray idList;
+        ArrayList<ReplyEntry> replyList;
 
         count = (count + 1) % 2;
+        Log.d(TAG, "Count: " + count);
 
         // Prepare the query message
         keywords = editSearch.getText().toString();
+        Log.d(TAG, "Keyword: " + keywords);
+
+        // input "test" for keywords, then the mock value will be returned.
         queryMessage = fogos.makeQueryMessage(keywords);
+        Log.d(TAG, "queryMessage: " + queryMessage);
 
         // Send the query message and get the reply message
         replyMessage = fogos.sendQueryMessage(queryMessage);
+        Log.d(TAG, "replyMessage: " + replyMessage);
 
         // TODO: ID List should be more abstracted.
-        idList = replyMessage.getIDList();
+        replyList = replyMessage.getReplyList();
+        Log.d(TAG, "replyList: " + replyList);
 
         // Add the list with the list of the replies including a flex ID, a description, and a title
         try {
             listAdapter.delAllItem();
-            JSONObject obj;
-            for (int i=0; i<idList.length(); i++) {
-                obj = idList.getJSONObject(i);
-                listAdapter.addItem(new ListItem(obj.getString("title"), obj.getString("desc"), obj.getString("id")));
+            ReplyEntry e;
+            for (int i=0; i<replyList.size(); i++) {
+                e = replyList.get(i);
+                listAdapter.addItem(new ListItem(e.getTitle(), e.getDesc(), e.getFlexID().getIdentity()));
             }
             listView.setAdapter(listAdapter);
 
