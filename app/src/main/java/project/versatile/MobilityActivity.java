@@ -9,6 +9,7 @@ import FogOSSocket.LogType;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -25,6 +26,14 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -60,6 +69,9 @@ public class MobilityActivity extends AppCompatActivity {
     ReceiverThread receiverThread;
     ReadyThread readyThread;
 
+    SimpleExoPlayer player;
+    PlayerView playerView;
+
     private final LogHandler logHandler = new LogHandler(this);
 
     public static final String KEY_FLEX_ID_DATA = "flex";
@@ -85,6 +97,7 @@ public class MobilityActivity extends AppCompatActivity {
         textView4 = (TextView) findViewById(R.id.textView4);
         startBtn = (Button) findViewById(R.id.startBtn);
         logListView = (ListView) findViewById(R.id.logList);
+        playerView = (PlayerView) findViewById(R.id.player_view);
 
         logListAdapter = new LogListAdapter();
         logListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -102,11 +115,30 @@ public class MobilityActivity extends AppCompatActivity {
             }
         });
 
+        player = ExoPlayerFactory.newSimpleInstance(this.getApplicationContext());
+        playerView.setPlayer(player);
+
+        player.prepare(getMediaSource());
+
         Log.d(TAG, "Before getting the intent");
         Intent intent = getIntent();
         Log.d(TAG, "Before processing the intent");
 
         processIntent(intent);
+    }
+
+    private MediaSource getMediaSource() {
+        String sample = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+        MediaSource mediaSource = buildMediaSource(Uri.parse(sample));
+        return mediaSource;
+    }
+
+    private MediaSource buildMediaSource(Uri uri) {
+        String userAgent = Util.getUserAgent(this, "blackJin");
+
+        return new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(userAgent))
+                .createMediaSource(uri);
     }
 
     // Function that is invoked when the button is clicked
