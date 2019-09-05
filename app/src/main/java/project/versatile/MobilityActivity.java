@@ -122,8 +122,6 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         player = ExoPlayerFactory.newSimpleInstance(this.getApplicationContext());
         playerView.setPlayer(player);
-        player.prepare(getMediaSource());
-        player.setPlayWhenReady(true);
 
         Log.d(TAG, "Before getting the intent");
         Intent intent = getIntent();
@@ -180,6 +178,9 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             backgroundThread.start();
             readyThread.start();
 
+            player.prepare(getMediaSource());
+            player.setPlayWhenReady(true);
+
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
         }
         else {
@@ -188,6 +189,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             Toast.makeText(this, "실험 종료", Toast.LENGTH_LONG).show();
             boolean retry = true;
             backgroundThread.setRunning(false);
+            player.stop(true);
 
             while (retry) {
                 try {
