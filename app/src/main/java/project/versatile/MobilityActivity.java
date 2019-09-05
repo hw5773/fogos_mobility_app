@@ -31,8 +31,13 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Util;
 
 import java.lang.ref.WeakReference;
@@ -42,7 +47,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MobilityActivity extends AppCompatActivity {
+public class MobilityActivity extends AppCompatActivity implements TransferListener {
     private static final String TAG = "FogOSMobilityActivity";
     private static int counter = 0;
     private static boolean ready = false;
@@ -117,8 +122,8 @@ public class MobilityActivity extends AppCompatActivity {
 
         player = ExoPlayerFactory.newSimpleInstance(this.getApplicationContext());
         playerView.setPlayer(player);
-
         player.prepare(getMediaSource());
+        player.setPlayWhenReady(true);
 
         Log.d(TAG, "Before getting the intent");
         Intent intent = getIntent();
@@ -128,17 +133,18 @@ public class MobilityActivity extends AppCompatActivity {
     }
 
     private MediaSource getMediaSource() {
-        String sample = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+        String sample = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
         MediaSource mediaSource = buildMediaSource(Uri.parse(sample));
         return mediaSource;
     }
 
+    // TODO: I've got a playable example from the outside http server.
+    //  the data source has to be changed to ByteArrayDataSource to support our buff[] data
     private MediaSource buildMediaSource(Uri uri) {
-        String userAgent = Util.getUserAgent(this, "blackJin");
-
-        return new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(userAgent))
-                .createMediaSource(uri);
+        String userAgent = Util.getUserAgent(this.getApplicationContext(), "fog_os");
+        DataSource.Factory httpSourceFactory = new DefaultHttpDataSourceFactory(userAgent, this);
+        return new ProgressiveMediaSource.Factory(httpSourceFactory).createMediaSource(uri);
     }
 
     // Function that is invoked when the button is clicked
@@ -294,6 +300,26 @@ public class MobilityActivity extends AppCompatActivity {
                 logListView.setAdapter(logListAdapter);
             }
         }
+    }
+
+    @Override
+    public void onTransferInitializing(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer initializing");
+    }
+
+    @Override
+    public void onTransferStart(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer starting");
+    }
+
+    @Override
+    public void onBytesTransferred(DataSource source, DataSpec dataSpec, boolean isNetwork, int bytesTransferred) {
+        Log.d("listner","transferred byte: " + bytesTransferred);
+    }
+
+    @Override
+    public void onTransferEnd(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer ended");
     }
 
     class LogListAdapter extends BaseAdapter {
