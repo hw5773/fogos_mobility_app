@@ -1,7 +1,7 @@
 package project.versatile;
 
 import FlexID.FlexID;
-import FogOSControl.Client.FogOSClient;
+import FogOSClient.FogOSClient;
 import FogOSMessage.QueryMessage;
 import FogOSMessage.ReplyMessage;
 import FogOSMessage.RequestMessage;
@@ -14,9 +14,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 
@@ -63,7 +60,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 intent.putExtra(KEY_FLEX_ID_DATA, data);
                 Log.d(TAG, "After putting the extra data into the bundle");
 
-                // TODO: Need to revise MobilityActivity to view the video
                 startActivityForResult(intent, REQUEST_CODE_MENU);
             }
         });

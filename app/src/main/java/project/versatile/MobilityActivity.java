@@ -2,6 +2,8 @@ package project.versatile;
 
 import FlexID.FlexID;
 import FlexID.FlexIDFactory;
+import FogOSSecurity.Role;
+import FogOSSecurity.SecureFlexIDSession;
 import FogOSSocket.FlexIDSession;
 import FogOSSocket.SessionLogger;
 import FogOSSocket.LogItem;
@@ -68,6 +70,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     Button startBtn;        // Start Button
     ListView logListView;
     FlexIDFactory factory;
+    SecureFlexIDSession secureFlexIDSession;
     FlexIDSession session;
     LogListAdapter logListAdapter;
     BackgroundThread backgroundThread;
@@ -91,9 +94,6 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         Log.d(TAG, "Before constructing the Flex ID factory");
         factory = new FlexIDFactory();
-
-        // TODO: Should be changed to view the video
-        // TODO: How can we integrate this activity with the exo-player?
 
         Log.d(TAG, "Before mapping the textView variables to the TextView resources");
         textView1 = (TextView) findViewById(R.id.textView1);
@@ -239,6 +239,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         MobilityActivity.ready = ready;
     }
 
+    /* Test Code to change the WiFi setting */
+    /*
     private void changeWifiSetting() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -272,6 +274,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             // Toast.makeText(getApplicationContext(), "Now send MapUpdate message to Peer and Flex ID Manager", Toast.LENGTH_LONG).show();
         }
     }
+    */
 
     // Get a new item for the listview
     private void handleMessage(Message msg) {
@@ -295,10 +298,12 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
                 }
 
                 // Test Code: Changing the AP to the other one.
+                /*
                 if ((change == false) && (logListAdapter.getCount() > 0)) {
-                    changeWifiSetting();
+                    //changeWifiSetting();
                     change = true;
                 }
+                */
                 logListView.setAdapter(logListAdapter);
             }
         }
@@ -401,19 +406,22 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         @Override
         public void run() {
-            session = new FlexIDSession(myID, peer, null, true);
-            sessionLogger = session.getSessionLogger();
+            //session = new FlexIDSession(myID, peer, null, true);
+            //sessionLogger = session.getSessionLogger();
+            secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+            sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
+            secureFlexIDSession.doHandshake();
 
             int recv = -1, limit = 0;
             byte b[] = new byte[1024];
 
             while (recv < 0)
-                recv = session.receive(b);
+                recv = secureFlexIDSession.recv(b, b.length);
 
             limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
 
             while (running) {
-                recv += session.receive(b);
+                recv += secureFlexIDSession.recv(b, b.length);
 
                 if (recv >= limit)
                     running = true;
