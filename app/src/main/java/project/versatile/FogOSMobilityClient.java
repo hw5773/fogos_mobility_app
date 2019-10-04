@@ -52,7 +52,14 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "선택: " + item.getTitle(), Toast.LENGTH_LONG).show();
                 Log.d(TAG, "After getting the peer's Flex ID");
                 requestMessage = fogos.makeRequestMessage(peer);
-                responseMessage = fogos.sendRequestMessage(requestMessage);
+
+                // TODO: We should change the test message below
+                // fogos.sendRequestMessage(requestMessage);
+                fogos.testRequestMessage(requestMessage);
+
+                do {
+                    responseMessage = fogos.getResponseMessage();
+                } while (responseMessage == null);
                 peer = responseMessage.getPeerID();
                 Log.d(TAG, "After requesting the connection with the peer's Flex ID: " + peer.getStringIdentity() + "IP: " + peer.getLocator().getAddr() + " / Port: " + peer.getLocator().getPort());
                 FlexIDParcel data = new FlexIDParcel(peer);
@@ -83,8 +90,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
         queryMessage = fogos.makeQueryMessage(keywords);
         Log.d(TAG, "queryMessage: " + queryMessage);
 
-        // Send the query message and get the reply message
-        replyMessage = fogos.sendQueryMessage(queryMessage);
+        // TODO: Send the query message and get the reply message
+        // fogos.sendQueryMessage(queryMessage);
+        fogos.testQueryMessage(queryMessage);
+        do {
+            replyMessage = fogos.getReplyMessage();
+        } while (replyMessage == null);
         Log.d(TAG, "replyMessage: " + replyMessage);
 
         // TODO: ID List should be more abstracted.
