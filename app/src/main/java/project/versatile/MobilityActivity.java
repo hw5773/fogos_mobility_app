@@ -395,7 +395,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             while (ready == false) {}
             System.out.println("Ready is set to true.");
             if (session != null)
-                session.setReady(true);
+                session.setReadyToConnect(true);
         }
     }
 
