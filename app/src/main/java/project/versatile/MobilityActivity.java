@@ -31,10 +31,12 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.ByteArrayDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -130,6 +132,17 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         processIntent(intent);
     }
 
+    // API to get a MediaSource from byte array, put this method to the code in line 198.
+    private MediaSource getMediaSourceFromByteArray(byte[] data) {
+        final ByteArrayDataSource byteArrayDataSource = new ByteArrayDataSource(data);
+        DataSource.Factory factory = () -> byteArrayDataSource;
+
+        MediaSource mediaSource = new ExtractorMediaSource(byteArrayDataSource.getUri(),
+                factory, new DefaultExtractorsFactory(), null, null);
+        return mediaSource;
+    }
+
+    // example code for playing a content from the outside http server
     private MediaSource getMediaSource() {
         String sample = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
@@ -137,8 +150,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         return mediaSource;
     }
 
-    // TODO: I've got a playable example from the outside http server.
-    //  the data source has to be changed to ByteArrayDataSource to support our buff[] data
+    // example code for playing a content from the outside http server
     private MediaSource buildMediaSource(Uri uri) {
         String userAgent = Util.getUserAgent(this.getApplicationContext(), "fog_os");
         DataSource.Factory httpSourceFactory = new DefaultHttpDataSourceFactory(userAgent, this);
