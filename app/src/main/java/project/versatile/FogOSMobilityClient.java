@@ -4,29 +4,37 @@ import org.json.JSONObject;
 import FlexID.*;
 
 import FlexID.FlexID;
-import FogOSControl.Client.FogOSClient;
+import FogOSClient.FogOSClient;
 import FogOSMessage.QueryMessage;
 import FogOSMessage.ReplyMessage;
 import FogOSMessage.RequestMessage;
 import FogOSMessage.ResponseMessage;
 import FogOSMessage.ReplyEntry;
+
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
-import org.json.JSONObject;
-
+import java.io.File;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 
 public class FogOSMobilityClient extends AppCompatActivity {
     public static final int REQUEST_CODE_MENU = 101;
     public static final String KEY_FLEX_ID_DATA = "flex";
     private static final String TAG = "FogOS";
+    private static final int PERMISSON_REQUEST = 1001;
 
     private EditText editSearch;
     private ListView listView;
@@ -38,8 +46,11 @@ public class FogOSMobilityClient extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(TAG, "Start Test Application");
-        fogos = new FogOSClient();
+        permissionCheck();
+    }
+
+    public void initialize(){
+        fogos = new FogOSClient(Environment.getExternalStorageDirectory().getPath());
 
         // Generate the list with the search bar
         setContentView(R.layout.activity_main);
@@ -58,7 +69,14 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "선택: " + item.getTitle(), Toast.LENGTH_LONG).show();
                 Log.d(TAG, "After getting the peer's Flex ID");
                 requestMessage = fogos.makeRequestMessage(peer);
-                responseMessage = fogos.sendRequestMessage(requestMessage);
+
+                // TODO: We should change the test message below
+                // fogos.sendRequestMessage(requestMessage);
+                fogos.testRequestMessage(requestMessage);
+
+                do {
+                    responseMessage = fogos.getResponseMessage();
+                } while (responseMessage == null);
                 peer = responseMessage.getPeerID();
                 // For Test
                 Locator loc = new Locator(InterfaceType.ETH, "147.47.208.67", 5556);
@@ -71,10 +89,32 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 intent.putExtra(KEY_FLEX_ID_DATA, data);
                 Log.d(TAG, "After putting the extra data into the bundle");
 
-                // TODO: Need to revise MobilityActivity to view the video
                 startActivityForResult(intent, REQUEST_CODE_MENU);
             }
         });
+    }
+
+    public void permissionCheck(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSON_REQUEST);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults){
+        switch (requestCode){
+            case PERMISSON_REQUEST:{
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    initialize();
+                } else{
+                    Toast.makeText(this, "No permission granted", Toast.LENGTH_LONG).show();
+            }
+                return ;
+            }
+        }
     }
 
     public void onButton1Clicked(View v) {
@@ -95,8 +135,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
         queryMessage = fogos.makeQueryMessage(keywords);
         Log.d(TAG, "queryMessage: " + queryMessage);
 
-        // Send the query message and get the reply message
-        replyMessage = fogos.sendQueryMessage(queryMessage);
+        // TODO: Send the query message and get the reply message
+        // fogos.sendQueryMessage(queryMessage);
+        fogos.testQueryMessage(queryMessage);
+        do {
+            replyMessage = fogos.getReplyMessage();
+        } while (replyMessage == null);
         Log.d(TAG, "replyMessage: " + replyMessage);
 
         // TODO: ID List should be more abstracted.

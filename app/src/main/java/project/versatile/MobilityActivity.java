@@ -2,6 +2,8 @@ package project.versatile;
 
 import FlexID.FlexID;
 import FlexID.FlexIDFactory;
+import FogOSSecurity.Role;
+import FogOSSecurity.SecureFlexIDSession;
 import FogOSSocket.FlexIDSession;
 import FogOSSocket.SessionLogger;
 import FogOSSocket.LogItem;
@@ -9,6 +11,7 @@ import FogOSSocket.LogType;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -26,6 +29,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.ByteArrayDataSource;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Util;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +51,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MobilityActivity extends AppCompatActivity {
+public class MobilityActivity extends AppCompatActivity implements TransferListener {
     private static final String TAG = "FogOSMobilityActivity";
     private static int counter = 0;
     private static boolean ready = false;
@@ -54,11 +72,15 @@ public class MobilityActivity extends AppCompatActivity {
     Button startBtn;        // Start Button
     ListView logListView;
     FlexIDFactory factory;
+    SecureFlexIDSession secureFlexIDSession;
     FlexIDSession session;
     LogListAdapter logListAdapter;
     BackgroundThread backgroundThread;
     ReceiverThread receiverThread;
     ReadyThread readyThread;
+
+    SimpleExoPlayer player;
+    PlayerView playerView;
 
     private final LogHandler logHandler = new LogHandler(this);
 
@@ -75,9 +97,6 @@ public class MobilityActivity extends AppCompatActivity {
         Log.d(TAG, "Before constructing the Flex ID factory");
         factory = new FlexIDFactory();
 
-        // TODO: Should be changed to view the video
-        // TODO: How can we integrate this activity with the exo-player?
-
         Log.d(TAG, "Before mapping the textView variables to the TextView resources");
         textView1 = (TextView) findViewById(R.id.textView1);
         textView2 = (TextView) findViewById(R.id.textView2);
@@ -85,6 +104,7 @@ public class MobilityActivity extends AppCompatActivity {
         textView4 = (TextView) findViewById(R.id.textView4);
         startBtn = (Button) findViewById(R.id.startBtn);
         logListView = (ListView) findViewById(R.id.logList);
+        playerView = (PlayerView) findViewById(R.id.player_view);
 
         logListAdapter = new LogListAdapter();
         logListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -102,11 +122,39 @@ public class MobilityActivity extends AppCompatActivity {
             }
         });
 
+        player = ExoPlayerFactory.newSimpleInstance(this.getApplicationContext());
+        playerView.setPlayer(player);
+
         Log.d(TAG, "Before getting the intent");
         Intent intent = getIntent();
         Log.d(TAG, "Before processing the intent");
 
         processIntent(intent);
+    }
+
+    // API to get a MediaSource from byte array, put this method to the code in line 198.
+    private MediaSource getMediaSourceFromByteArray(byte[] data) {
+        final ByteArrayDataSource byteArrayDataSource = new ByteArrayDataSource(data);
+        DataSource.Factory factory = () -> byteArrayDataSource;
+
+        MediaSource mediaSource = new ExtractorMediaSource(byteArrayDataSource.getUri(),
+                factory, new DefaultExtractorsFactory(), null, null);
+        return mediaSource;
+    }
+
+    // example code for playing a content from the outside http server
+    private MediaSource getMediaSource() {
+        String sample = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+        MediaSource mediaSource = buildMediaSource(Uri.parse(sample));
+        return mediaSource;
+    }
+
+    // example code for playing a content from the outside http server
+    private MediaSource buildMediaSource(Uri uri) {
+        String userAgent = Util.getUserAgent(this.getApplicationContext(), "fog_os");
+        DataSource.Factory httpSourceFactory = new DefaultHttpDataSourceFactory(userAgent, this);
+        return new ProgressiveMediaSource.Factory(httpSourceFactory).createMediaSource(uri);
     }
 
     // Function that is invoked when the button is clicked
@@ -142,6 +190,9 @@ public class MobilityActivity extends AppCompatActivity {
             backgroundThread.start();
             readyThread.start();
 
+            player.prepare(getMediaSource());
+            player.setPlayWhenReady(true);
+
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
         }
         else {
@@ -150,6 +201,7 @@ public class MobilityActivity extends AppCompatActivity {
             Toast.makeText(this, "실험 종료", Toast.LENGTH_LONG).show();
             boolean retry = true;
             backgroundThread.setRunning(false);
+            player.stop(true);
 
             while (retry) {
                 try {
@@ -199,6 +251,8 @@ public class MobilityActivity extends AppCompatActivity {
         MobilityActivity.ready = ready;
     }
 
+    /* Test Code to change the WiFi setting */
+    /*
     private void changeWifiSetting() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
@@ -232,6 +286,7 @@ public class MobilityActivity extends AppCompatActivity {
             // Toast.makeText(getApplicationContext(), "Now send MapUpdate message to Peer and Flex ID Manager", Toast.LENGTH_LONG).show();
         }
     }
+    */
 
     // Get a new item for the listview
     private void handleMessage(Message msg) {
@@ -255,13 +310,35 @@ public class MobilityActivity extends AppCompatActivity {
                 }
 
                 // Test Code: Changing the AP to the other one.
+                /*
                 if ((change == false) && (logListAdapter.getCount() > 0)) {
-                    changeWifiSetting();
+                    //changeWifiSetting();
                     change = true;
                 }
+                */
                 logListView.setAdapter(logListAdapter);
             }
         }
+    }
+
+    @Override
+    public void onTransferInitializing(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer initializing");
+    }
+
+    @Override
+    public void onTransferStart(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer starting");
+    }
+
+    @Override
+    public void onBytesTransferred(DataSource source, DataSpec dataSpec, boolean isNetwork, int bytesTransferred) {
+        Log.d("listner","transferred byte: " + bytesTransferred);
+    }
+
+    @Override
+    public void onTransferEnd(DataSource source, DataSpec dataSpec, boolean isNetwork) {
+        Log.d("listner","transfer ended");
     }
 
     class LogListAdapter extends BaseAdapter {
@@ -330,7 +407,7 @@ public class MobilityActivity extends AppCompatActivity {
             while (ready == false) {}
             System.out.println("Ready is set to true.");
             if (session != null)
-                session.setReady(true);
+                session.setReadyToConnect(true);
         }
     }
 
@@ -341,19 +418,22 @@ public class MobilityActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            session = new FlexIDSession(myID, peer, null, true);
-            sessionLogger = session.getSessionLogger();
+            //session = new FlexIDSession(myID, peer, null, true);
+            //sessionLogger = session.getSessionLogger();
+            secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+            sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
+            secureFlexIDSession.doHandshake();
 
             int recv = -1, limit = 0;
             byte b[] = new byte[1024];
 
             while (recv < 0)
-                recv = session.receive(b);
+                recv = secureFlexIDSession.recv(b, b.length);
 
             limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
 
             while (running) {
-                recv += session.receive(b);
+                recv += secureFlexIDSession.recv(b, b.length);
 
                 if (recv >= limit)
                     running = true;
