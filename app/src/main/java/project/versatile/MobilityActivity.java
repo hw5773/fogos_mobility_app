@@ -58,6 +58,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     private TimerTask task;
     private Timer timer;
     String prevIP;
+    byte b[] = new byte[1024];
 
     FlexID myID, peer;
     boolean flag = false;
@@ -190,7 +191,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             backgroundThread.start();
             readyThread.start();
 
-            player.prepare(getMediaSource());
+            player.prepare(getMediaSourceFromByteArray(b));
             player.setPlayWhenReady(true);
 
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
@@ -425,7 +426,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             secureFlexIDSession.doHandshake();
 
             int recv = -1, limit = 0;
-            byte b[] = new byte[1024];
+
 
             while (recv < 0)
                 recv = secureFlexIDSession.recv(b, b.length);
