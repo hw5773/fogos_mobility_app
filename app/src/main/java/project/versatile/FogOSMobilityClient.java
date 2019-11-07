@@ -61,7 +61,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 responseMessage = fogos.sendRequestMessage(requestMessage);
                 peer = responseMessage.getPeerID();
                 // For Test
-                Locator loc = new Locator(InterfaceType.ETH, "147.47.209.129", 5556);
+                Locator loc = new Locator(InterfaceType.ETH, "147.47.208.67", 5556);
                 peer.setLocator(loc);
                 Log.d(TAG, "After requesting the connection with the peer's Flex ID: " + peer.getStringIdentity() + "IP: " + peer.getLocator().getAddr() + " / Port: " + peer.getLocator().getPort());
 
