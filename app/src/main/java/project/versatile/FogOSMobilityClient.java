@@ -1,5 +1,8 @@
 package project.versatile;
 
+import org.json.JSONObject;
+import FlexID.*;
+
 import FlexID.FlexID;
 import FogOSControl.Client.FogOSClient;
 import FogOSMessage.QueryMessage;
@@ -57,7 +60,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 requestMessage = fogos.makeRequestMessage(peer);
                 responseMessage = fogos.sendRequestMessage(requestMessage);
                 peer = responseMessage.getPeerID();
+                // For Test
+                Locator loc = new Locator(InterfaceType.ETH, "147.47.209.129", 5556);
+                peer.setLocator(loc);
                 Log.d(TAG, "After requesting the connection with the peer's Flex ID: " + peer.getStringIdentity() + "IP: " + peer.getLocator().getAddr() + " / Port: " + peer.getLocator().getPort());
+
+
                 FlexIDParcel data = new FlexIDParcel(peer);
                 Log.d(TAG, "After making the peer's Flex ID parcelable");
                 intent.putExtra(KEY_FLEX_ID_DATA, data);
