@@ -92,6 +92,8 @@ public class FogOSMobilityClient extends AppCompatActivity {
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSON_REQUEST);
             }
+        } else{
+            initialize();
         }
     }
 
