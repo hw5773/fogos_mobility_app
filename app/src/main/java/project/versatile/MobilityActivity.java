@@ -419,22 +419,22 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         @Override
         public void run() {
-            //session = new FlexIDSession(myID, peer, null, true);
-            //sessionLogger = session.getSessionLogger();
-            secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
-            sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
-            secureFlexIDSession.doHandshake();
+            session = new FlexIDSession(myID, peer, null, true);
+            sessionLogger = session.getSessionLogger();
+            //secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+            //sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
+            //secureFlexIDSession.doHandshake();
 
             int recv = -1, limit = 0;
 
 
             while (recv < 0)
-                recv = secureFlexIDSession.recv(b, b.length);
+                recv = session.receive(b);
 
             limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
 
             while (running) {
-                recv += secureFlexIDSession.recv(b, b.length);
+                recv += session.receive(b);
 
                 if (recv >= limit)
                     running = true;
