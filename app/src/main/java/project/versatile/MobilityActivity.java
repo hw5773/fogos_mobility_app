@@ -434,8 +434,9 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
 
             while (running) {
-                recv += session.receive(b);
-
+                int count = session.receive(b);
+                recv += count;
+                // Log.e("exoplayer", "exoplayer(received): " + new String(b));
                 if (recv >= limit)
                     running = true;
             }
