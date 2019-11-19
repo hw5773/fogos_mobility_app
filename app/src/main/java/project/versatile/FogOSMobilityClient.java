@@ -95,14 +95,33 @@ public class FogOSMobilityClient extends AppCompatActivity {
     }
 
     public void permissionCheck(){
+        ArrayList<String> permissions = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.INTERNET);
+        }
+
+        if (permissions.size() > 0 ) {
+            String[] reqPermissionArray = new String[permissions.size()];
+            reqPermissionArray = permissions.toArray(reqPermissionArray);
+            ActivityCompat.requestPermissions(this, reqPermissionArray, PERMISSON_REQUEST);
+        } else {
+            initialize();
+        }
+
+        /*if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSON_REQUEST);
             }
         } else {
             initialize();
-        }
+        }*/
     }
 
     @Override

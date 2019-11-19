@@ -50,6 +50,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="8dp"
                 android:hint="검색어를 입력하세요"
+                android:text="test"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/button"
                 app:layout_constraintHorizontal_bias="0.413"

@@ -16,6 +16,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,10 +42,16 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -58,7 +65,9 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     private TimerTask task;
     private Timer timer;
     String prevIP;
-    byte b[] = new byte[1024];
+    byte b[] = new byte[2048];
+
+    File tempDir, tempFile;
 
     FlexID myID, peer;
     boolean flag = false;
@@ -122,6 +131,16 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
                 }
             }
         });
+
+        tempDir = new File(Environment.getExternalStorageDirectory(), "temp");
+        if(!tempDir.isDirectory()) {
+            if (!tempDir.mkdirs()) {
+                Toast.makeText(this, "폴더 생성 실패", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "폴더 생성 성공", Toast.LENGTH_SHORT).show();
+            }
+        }
+        tempFile = new File(tempDir, "temp.mp4");
 
         player = ExoPlayerFactory.newSimpleInstance(this.getApplicationContext());
         playerView.setPlayer(player);
@@ -191,9 +210,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             backgroundThread.start();
             readyThread.start();
 
-            player.prepare(getMediaSourceFromByteArray(b));
-            player.setPlayWhenReady(true);
-
+            //player.prepare(getMediaSourceFromByteArray(b));
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
         }
         else {
@@ -213,6 +230,27 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
                 }
             }
         }
+    }
+
+    private void prepareExoPlayerFromFileUri(Uri uri){
+        DataSpec dataSpec = new DataSpec(uri);
+        final FileDataSource fileDataSource = new FileDataSource();
+        try {
+            fileDataSource.open(dataSpec);
+        } catch (FileDataSource.FileDataSourceException e) {
+            e.printStackTrace();
+        }
+
+        DataSource.Factory factory = new DataSource.Factory() {
+            @Override
+            public DataSource createDataSource() {
+                return fileDataSource;
+            }
+        };
+        MediaSource audioSource = new ExtractorMediaSource(fileDataSource.getUri(),
+                factory, new DefaultExtractorsFactory(), null, null);
+
+        player.prepare(audioSource);
     }
 
     private void processIntent(Intent intent) {
@@ -425,20 +463,45 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             //sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
             //secureFlexIDSession.doHandshake();
 
-            int recv = -1, limit = 0;
+            try {
+                if (tempFile.exists()) {
+                    tempFile.delete();
+                    tempFile.createNewFile();
+                }
+                FileOutputStream fos = new FileOutputStream(tempFile);
+                int recv = 0, limit = 0;
 
+                // limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
+                limit = 1056768;
+                boolean check = true;
 
-            while (recv < 0)
-                recv = session.receive(b);
+                while (running) {
+                    int count = session.receive(b);
 
-            limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
-
-            while (running) {
-                int count = session.receive(b);
-                recv += count;
-                // Log.e("exoplayer", "exoplayer(received): " + new String(b));
-                if (recv >= limit)
-                    running = true;
+                    if (count > 0) {
+                        recv += count;
+                        Log.v("buff", "count: " + count + " recv:" + recv);
+                        fos.write(b, 0, count);
+                        if(check) {
+                            Log.v("mckwak", byteArrayToHex(b, 128));
+                            check = false;
+                        }
+                    }
+                    if (recv >= limit) {
+                        Log.v("buff", "running = false");
+                        break;
+                    }
+                }
+                fos.close();
+                runOnUiThread(() -> {
+                    Log.v("buff", "ui thread started");
+                    prepareExoPlayerFromFileUri(Uri.fromFile(tempFile));
+                    player.setPlayWhenReady(true);
+                    Log.v("buff", "exoplayer ready");
+                });
+                session.close();
+            } catch (IOException e){
+                e.printStackTrace();
             }
         }
     }
@@ -457,4 +520,19 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             }
         }
     }
+    static String byteArrayToHex(byte[] a, int len) {
+        byte[] tmp = new byte[len];
+        int idx = 0;
+        StringBuilder sb = new StringBuilder();
+        System.arraycopy(a, 0, tmp, 0, len);
+
+        for (final byte b: tmp) {
+            sb.append(String.format("0x%02x, ", b & 0xff));
+            idx++;
+            if (idx % 8 == 0)
+                sb.append("\n");
+        }
+        return sb.toString();
+    }
+
 }
