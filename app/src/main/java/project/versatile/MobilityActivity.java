@@ -27,12 +27,19 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import versatile.flexid.FlexID;
-import versatile.flexid.FlexIDFactory;
-import versatile.flexidsession.FlexIDSession;
-import versatile.flexidsession.LogItem;
-import versatile.flexidsession.LogType;
-import versatile.flexidsession.SessionLogger;
+import FlexID.*;
+import FlexID.FlexID;
+import FlexID.FlexIDFactory;
+import FogOSSocket.FlexIDSession;
+import FogOSSocket.LogItem;
+import FogOSSocket.LogType;
+import FogOSSocket.SessionLogger;
+//import versatile.flexid.FlexID;
+//import versatile.flexid.FlexIDFactory;
+//import versatile.flexidsession.FlexIDSession;
+//import versatile.flexidsession.LogItem;
+//import versatile.flexidsession.LogType;
+//import versatile.flexidsession.SessionLogger;
 
 public class MobilityActivity extends AppCompatActivity {
     private static final String TAG = "FogOSMobilityActivity";
@@ -170,7 +177,11 @@ public class MobilityActivity extends AppCompatActivity {
             try {
                 FlexIDData data = (FlexIDData) bundle.getParcelable(KEY_FLEX_ID_DATA);
                 Log.d(TAG, "Getting the data");
-                peer = data.getId();
+//                peer = data.getId();
+                String peerAddr = "147.47.209.129";
+                int peerPort = 5556;
+                Locator loc = new Locator(InterfaceType.ETH, peerAddr, peerPort);
+                peer = new FlexID("0x5550".getBytes(), FlexIDType.DEVICE, new AttrValuePairs(), loc); //jhlim
                 Log.d(TAG, "Getting the Flex ID");
                 myID = factory.getMyFlexID(peer);
                 Log.d(TAG, "Getting my Flex ID");
@@ -328,7 +339,7 @@ public class MobilityActivity extends AppCompatActivity {
             while (ready == false) {}
             System.out.println("Ready is set to true.");
             if (session != null)
-                session.setReady(true);
+                session.setReadyToConnect(true);
         }
     }
 
