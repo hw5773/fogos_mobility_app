@@ -33,9 +33,11 @@ import android.widget.Toast;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.ByteArrayDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -44,6 +46,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.upstream.UdpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
@@ -152,31 +155,6 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         processIntent(intent);
     }
 
-    // API to get a MediaSource from byte array, put this method to the code in line 198.
-    private MediaSource getMediaSourceFromByteArray(byte[] data) {
-        final ByteArrayDataSource byteArrayDataSource = new ByteArrayDataSource(data);
-        DataSource.Factory factory = () -> byteArrayDataSource;
-
-        MediaSource mediaSource = new ExtractorMediaSource(byteArrayDataSource.getUri(),
-                factory, new DefaultExtractorsFactory(), null, null);
-        return mediaSource;
-    }
-
-    // example code for playing a content from the outside http server
-    private MediaSource getMediaSource() {
-        String sample = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
-        MediaSource mediaSource = buildMediaSource(Uri.parse(sample));
-        return mediaSource;
-    }
-
-    // example code for playing a content from the outside http server
-    private MediaSource buildMediaSource(Uri uri) {
-        String userAgent = Util.getUserAgent(this.getApplicationContext(), "fog_os");
-        DataSource.Factory httpSourceFactory = new DefaultHttpDataSourceFactory(userAgent, this);
-        return new ProgressiveMediaSource.Factory(httpSourceFactory).createMediaSource(uri);
-    }
-
     // Function that is invoked when the button is clicked
     public void onButton2Clicked(View v) {
         if (flag == false) {
@@ -241,16 +219,39 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             e.printStackTrace();
         }
 
-        DataSource.Factory factory = new DataSource.Factory() {
-            @Override
-            public DataSource createDataSource() {
-                return fileDataSource;
-            }
-        };
+        DataSource.Factory factory = () -> fileDataSource;
         MediaSource audioSource = new ExtractorMediaSource(fileDataSource.getUri(),
                 factory, new DefaultExtractorsFactory(), null, null);
 
         player.prepare(audioSource);
+    }
+
+    // API to get a MediaSource from byte array, put this method to the code in line 198.
+    private MediaSource getMediaSourceFromByteArray(byte[] data) {
+        final ByteArrayDataSource byteArrayDataSource = new ByteArrayDataSource(data);
+        DataSource.Factory factory = () -> byteArrayDataSource;
+
+        MediaSource mediaSource = new ExtractorMediaSource(byteArrayDataSource.getUri(),
+                factory, new DefaultExtractorsFactory(), null, null);
+        return mediaSource;
+    }
+
+    // example code for playing a content from the outside http server
+    private MediaSource getMediaSourceFromHttp() {
+        String sample = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+        Uri uri = Uri.parse(sample);
+        String userAgent = Util.getUserAgent(this.getApplicationContext(), "fog_os");
+        DataSource.Factory httpSourceFactory = new DefaultHttpDataSourceFactory(userAgent, this);
+        return new ProgressiveMediaSource.Factory(httpSourceFactory).createMediaSource(uri);
+    }
+
+    private MediaSource prepareExoplayerFromFogOsSocket(FlexIDSession session, int limit) {
+        FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit);
+        DataSource.Factory factory = () -> fogOsDataSource;
+        MediaSource mediaSource = new ExtractorMediaSource(fogOsDataSource.getUri(), factory,
+                new DefaultExtractorsFactory(), null, null);
+        return mediaSource;
     }
 
     private void processIntent(Intent intent) {
@@ -462,47 +463,53 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             //secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
             //sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
             //secureFlexIDSession.doHandshake();
+            int limit = 1056768;
+            runOnUiThread(() -> {
+                //prepareExoplayerFromFogOsSocket(session, limit);
 
+                player.prepare(getMediaSourceFromHttp());
+                player.setPlayWhenReady(true);
+            });
+            /*
             try {
                 if (tempFile.exists()) {
                     tempFile.delete();
                     tempFile.createNewFile();
                 }
                 FileOutputStream fos = new FileOutputStream(tempFile);
-                int recv = 0, limit = 0;
+                int recv = 0;
 
                 // limit = ((b[0] << 24) & 0xff) | ((b[1] << 16) & 0xff) | ((b[2] << 8) & 0xff) | (b[3] & 0xff);
-                limit = 1056768;
-                boolean check = true;
+                // boolean check = true;
 
                 while (running) {
                     int count = session.receive(b);
 
                     if (count > 0) {
                         recv += count;
-                        Log.v("buff", "count: " + count + " recv:" + recv);
-                        fos.write(b, 0, count);
+                        /* Log.v("buff", "count: " + count + " recv:" + recv);
+                        // fos.write(b, 0, count);
                         if(check) {
                             Log.v("mckwak", byteArrayToHex(b, 128));
                             check = false;
                         }
                     }
                     if (recv >= limit) {
-                        Log.v("buff", "running = false");
+                        Log.v("receiver", "running = false");
                         break;
                     }
                 }
-                fos.close();
+                // fos.close();
                 runOnUiThread(() -> {
-                    Log.v("buff", "ui thread started");
-                    prepareExoPlayerFromFileUri(Uri.fromFile(tempFile));
-                    player.setPlayWhenReady(true);
-                    Log.v("buff", "exoplayer ready");
+                    // Log.v("buff", "ui thread started");
+                    // prepareExoPlayerFromFileUri(Uri.fromFile(tempFile));
+                    // player.setPlayWhenReady(true);
+                    // Log.v("buff", "exoplayer ready");
                 });
                 session.close();
-            } catch (IOException e){
+            } catch (Exception e){
                 e.printStackTrace();
-            }
+            } */
         }
     }
 
