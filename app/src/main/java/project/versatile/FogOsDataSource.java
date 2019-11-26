@@ -1,6 +1,7 @@
 package project.versatile;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -24,6 +25,8 @@ public class FogOsDataSource extends BaseDataSource {
 
     private FlexIDSession session = null;
     private int limit = 0;
+    private int count = 2048;
+    private int total = 0;
 
     public static final class FogOsDataSourceException extends IOException {
 
@@ -107,6 +110,7 @@ public class FogOsDataSource extends BaseDataSource {
         } catch (IOException e) {
             throw new FogOsDataSourceException(e);
         }*/
+        // Log.e("mckwak", "opened");
 
         opened = true;
         return C.LENGTH_UNSET;
@@ -114,20 +118,25 @@ public class FogOsDataSource extends BaseDataSource {
 
     @Override
     public int read(byte[] buffer, int offset, int readLength) throws FogOsDataSourceException {
+        // Log.e("mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
         if (readLength == 0) {
             return 0;
         }
-
         if (packetRemaining == 0) {
             // We've read all of the data from the current packet. Get another.
-            session.receive(packetBuffer);
-            packetRemaining = packet.getLength();
+            count = session.receive(packetBuffer);
+            while (count <= 0)
+                count = session.receive(packetBuffer);
+            total += count;
+            packetRemaining = count;
+            // Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
+            Log.e("FogOSDataSource", "downloaded bytes: " + total);
         }
-
-        int packetOffset = packet.getLength() - packetRemaining;
+        int packetOffset = count - packetRemaining;
         int bytesToRead = Math.min(packetRemaining, readLength);
         System.arraycopy(packetBuffer, packetOffset, buffer, offset, bytesToRead);
         packetRemaining -= bytesToRead;
+        // Log.e("mckwak", "packetOffset: " + packetOffset + " bytesToRead: " + bytesToRead + " packetRemaining: " + packetRemaining);
         return bytesToRead;
     }
 
@@ -154,10 +163,10 @@ public class FogOsDataSource extends BaseDataSource {
         }
         address = null;
         socketAddress = null;
-        packetRemaining = 0;
+        // packetRemaining = 0;
+        // Log.e("mckwak", "closed");
         if (opened) {
             opened = false;
-            transferEnded();
         }
     }
 }

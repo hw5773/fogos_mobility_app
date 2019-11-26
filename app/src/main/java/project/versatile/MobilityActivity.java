@@ -247,7 +247,17 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     }
 
     private MediaSource prepareExoplayerFromFogOsSocket(FlexIDSession session, int limit) {
+        String sample = "udp://147.47.208.67:5556";
+        Uri uri = Uri.parse(sample);
+        DataSpec dataSpec = new DataSpec(uri);
+
         FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit);
+        try {
+            fogOsDataSource.open(dataSpec);
+        } catch (FogOsDataSource.FogOsDataSourceException e) {
+            e.printStackTrace();
+        }
+
         DataSource.Factory factory = () -> fogOsDataSource;
         MediaSource mediaSource = new ExtractorMediaSource(fogOsDataSource.getUri(), factory,
                 new DefaultExtractorsFactory(), null, null);
@@ -465,9 +475,9 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             //secureFlexIDSession.doHandshake();
             int limit = 1056768;
             runOnUiThread(() -> {
-                //prepareExoplayerFromFogOsSocket(session, limit);
+                player.prepare(prepareExoplayerFromFogOsSocket(session, limit));
 
-                player.prepare(getMediaSourceFromHttp());
+                // player.prepare(getMediaSourceFromHttp());
                 player.setPlayWhenReady(true);
             });
             /*
