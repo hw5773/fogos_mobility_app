@@ -63,12 +63,13 @@ import java.util.TimerTask;
 
 public class MobilityActivity extends AppCompatActivity implements TransferListener {
     private static final String TAG = "FogOSMobilityActivity";
+    private static final int MAX_PACKET_SIZE = 32768;
     private static int counter = 0;
     private static boolean ready = false;
     private TimerTask task;
     private Timer timer;
     String prevIP;
-    byte b[] = new byte[2048];
+    byte b[] = new byte[MAX_PACKET_SIZE];
 
     File tempDir, tempFile;
 
@@ -247,11 +248,11 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     }
 
     private MediaSource prepareExoplayerFromFogOsSocket(FlexIDSession session, int limit) {
-        String sample = "udp://147.47.208.67:5556";
+        String sample = "udp://147.47.208.67:5556"; // meaningless
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);
 
-        FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit);
+        FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit, MAX_PACKET_SIZE);
         try {
             fogOsDataSource.open(dataSpec);
         } catch (FogOsDataSource.FogOsDataSourceException e) {

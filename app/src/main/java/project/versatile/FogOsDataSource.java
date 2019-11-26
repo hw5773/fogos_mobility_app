@@ -15,9 +15,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
-import java.net.SocketException;
-import java.util.List;
-import java.util.Map;
 
 import FogOSSocket.FlexIDSession;
 
@@ -75,6 +72,12 @@ public class FogOsDataSource extends BaseDataSource {
     
     public FogOsDataSource(FlexIDSession session, int limit) {
         this(DEFAULT_MAX_PACKET_SIZE);
+        this.session = session;
+        this.limit = limit;
+    }
+
+    public FogOsDataSource(FlexIDSession session, int limit, int maxPacketSize) {
+        this(maxPacketSize);
         this.session = session;
         this.limit = limit;
     }
