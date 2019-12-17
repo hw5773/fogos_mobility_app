@@ -1,6 +1,7 @@
 package project.versatile;
 
 import org.json.JSONObject;
+
 import FlexID.*;
 
 import FlexID.FlexID;
@@ -15,6 +16,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -49,7 +51,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
         permissionCheck();
     }
 
-    public void initialize(){
+    public void initialize() {
         fogos = new FogOSClient(Environment.getExternalStorageDirectory().getPath());
 
         // Generate the list with the search bar
@@ -94,7 +96,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
         });
     }
 
-    public void permissionCheck(){
+    public void permissionCheck() {
         ArrayList<String> permissions = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -106,7 +108,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
             permissions.add(Manifest.permission.INTERNET);
         }
 
-        if (permissions.size() > 0 ) {
+        if (permissions.size() > 0) {
             String[] reqPermissionArray = new String[permissions.size()];
             reqPermissionArray = permissions.toArray(reqPermissionArray);
             ActivityCompat.requestPermissions(this, reqPermissionArray, PERMISSON_REQUEST);
@@ -125,15 +127,15 @@ public class FogOSMobilityClient extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults){
-        switch (requestCode){
-            case PERMISSON_REQUEST:{
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSON_REQUEST: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     initialize();
-                } else{
+                } else {
                     Toast.makeText(this, "No permission granted", Toast.LENGTH_LONG).show();
-            }
-                return ;
+                }
+                return;
             }
         }
     }
@@ -172,7 +174,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
         try {
             listAdapter.delAllItem();
             ReplyEntry e;
-            for (int i=0; i<replyList.size(); i++) {
+            for (int i = 0; i < replyList.size(); i++) {
                 e = replyList.get(i);
                 listAdapter.addItem(new ListItem(e.getTitle(), e.getDesc(), e.getFlexID().getIdentity()));
             }
