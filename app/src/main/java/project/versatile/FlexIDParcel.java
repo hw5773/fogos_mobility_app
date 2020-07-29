@@ -13,7 +13,7 @@ import android.util.Log;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-
+import FlexID.Value;
 
 public class FlexIDParcel implements Parcelable {
     private static final String TAG="FogOSData";
@@ -31,7 +31,7 @@ public class FlexIDParcel implements Parcelable {
         byte[] priv;
         int len, numOfAVPs, io;
         AttrValuePairs avps = new AttrValuePairs();
-        Hashtable<String, String> table = avps.getTable();
+        Hashtable<String, Value> table = avps.getTable();
         InterfaceType inf;
         Locator loc;
 
@@ -55,7 +55,8 @@ public class FlexIDParcel implements Parcelable {
         numOfAVPs = src.readInt();
 
         for (int i=0; i<numOfAVPs; i++) {
-            table.put(src.readString(), src.readString());
+            Value tmpVal = new Value("test", "test");
+            table.put(src.readString(), tmpVal);
         }
         
         io = src.readInt();
@@ -107,13 +108,13 @@ public class FlexIDParcel implements Parcelable {
         Log.d(TAG, "Number of AVPs: " + id.getAvps().getNumberOfAVPs());
         dest.writeInt(id.getAvps().getNumberOfAVPs());
 
-        Hashtable<String, String> table = id.getAvps().getTable();
+        Hashtable<String, Value> table = id.getAvps().getTable();
         Iterator<String> itr = table.keySet().iterator();
         String key;
         while (itr.hasNext()) {
             key = itr.next();
             dest.writeString(key);
-            dest.writeString(table.get(key));
+            dest.writeString(String.valueOf(table.get(key)));
         }
 
         Log.d(TAG, "AVPs are passed");
