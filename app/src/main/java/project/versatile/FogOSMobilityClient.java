@@ -141,6 +141,28 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE_MENU);
             }
         });
+
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                CheckBox cb = (CheckBox)view.findViewById(R.id.contentCheckBox);
+                String aa = "AA";
+                String bb = "BB";
+                if (cb.isChecked()) {
+                    Log.d("-- Clicked!!!!!", aa);
+                    mContentAdapter.changeShared(position, true);
+
+                    // TODO: send register message
+
+                } else {
+                    Log.d("-- Unclicked!!!!!", bb);
+                    mContentAdapter.changeShared(position, false);
+
+                    // TODO: send deregister message
+                }
+            }
+        });
     }
 
     void genContentList() {
@@ -148,6 +170,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
         // 데이터 생성
         mContentAdapter.addItem("picture_1", "/somewhere/", true);
         mContentAdapter.addItem("picture_2", "/someplace/", true);
+        mContentAdapter.addItem("picture_3", "/someplace/", true);
 
         /*
         Content[] contentList = fogos.getContentList();
@@ -298,8 +321,13 @@ public class FogOSMobilityClient extends AppCompatActivity {
                         mContentAdapter.addItem(downloadedFileName, fileUrl[0],true);
                         mContentAdapter.notifyDataSetChanged();
                     }
+
+                    Log.d("!!!!!---!!!!!! Updated ", fileUrl[0]);
+                    fogos.ContentUpdate();
+
+                    // TODO: send register message
+
                 }
-                // TODO: send register message
             }
         });
 
@@ -328,6 +356,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 }
             }
         });
+
 
     }
 

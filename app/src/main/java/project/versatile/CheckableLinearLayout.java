@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.Checkable;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 
 
@@ -35,31 +36,27 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
 
     @Override
     public void setChecked(boolean checked) {
-        CheckBox cb = (CheckBox) findViewById(R.id.contentCheckBox) ;
-        Log.d("!!!!!~~~~!! Registered", String.valueOf(checked));
-
+        CheckBox cb = (CheckBox) findViewById(R.id.contentCheckBox);
         if (cb.isChecked() != checked) {
-            cb.setChecked(checked);
+            cb.setChecked(checked) ;
+        }
+        /*
+        if (cb.isChecked() != checked) {
 
             if (checked) {
                 // send register message
-                Log.d("!!!!!!!!!! Registered", String.valueOf(checked));
+                Log.d("!!! Registered?", String.valueOf(checked));
+                cb.setChecked(checked);
 
             } else {
-                // send deregister message
+                Log.d("!!! Deregistered?", String.valueOf(checked));
+                NegativeClick();
             }
-
-            /*
-            if (cb.isChecked() == true) {
-                DialogClick();
-            } else {
-                cb.setChecked(checked) ;
-            }
-            */
         }
+         */
     }
 
-    public void DialogClick() {
+    public void NegativeClick() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setTitle("").setMessage("컨텐츠 등록을 해지 하십니까?");
         builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
@@ -68,6 +65,8 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
                 Toast.makeText(mContext.getApplicationContext(), "", Toast.LENGTH_LONG).show();
                 CheckBox cb = (CheckBox) findViewById(R.id.contentCheckBox) ;
                 cb.setChecked(false);
+
+                // send deregister message
             }
         });
         builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() {

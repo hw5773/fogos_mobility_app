@@ -23,7 +23,6 @@ public class ContentListViewItem {
     }
 
     public void setShared(Boolean bool) {
-
         this.shared = bool;
     }
 
