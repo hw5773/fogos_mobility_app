@@ -4,6 +4,7 @@ import FlexID.*;
 
 import FlexID.FlexID;
 import FogOSClient.FogOSClient;
+import FogOSContent.Content;
 import FogOSMessage.QueryMessage;
 import FogOSMessage.ReplyMessage;
 import FogOSMessage.RequestMessage;
@@ -147,16 +148,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 CheckBox cb = (CheckBox)view.findViewById(R.id.contentCheckBox);
-                String aa = "AA";
-                String bb = "BB";
                 if (cb.isChecked()) {
-                    Log.d("-- Clicked!!!!!", aa);
                     mContentAdapter.changeShared(position, true);
 
                     // TODO: send register message
 
                 } else {
-                    Log.d("-- Unclicked!!!!!", bb);
                     mContentAdapter.changeShared(position, false);
 
                     // TODO: send deregister message
@@ -167,10 +164,10 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
     void genContentList() {
 
-        // 데이터 생성
-        mContentAdapter.addItem("picture_1", "/somewhere/", true);
-        mContentAdapter.addItem("picture_2", "/someplace/", true);
-        mContentAdapter.addItem("picture_3", "/someplace/", true);
+        // 테스트 아이템 생성
+        mContentAdapter.addItem("picture_1", "/storage/emulated/0/Pictures", true);
+        mContentAdapter.addItem("picture_2", "/storage/emulated/0/Pictures", false);
+        mContentAdapter.addItem("picture_3", "/storage/emulated/0/Pictures", true);
 
         /*
         Content[] contentList = fogos.getContentList();
@@ -178,14 +175,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
         String a = "A";
         for (int i = 0; i < contentList.length; i++) {
             Content d = contentList[i];
-            Log.d("", d.getName());
-            Log.d("", d.getPath());
-            if (d.isShared()) {
-                Log.d("True -", a);
-            } else {
-                Log.d("False -", a);
-            }
-
             mContentAdapter.addItem(d.getName(), d.getPath(), d.isShared());
         }
         */
@@ -302,8 +291,9 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 if (fileUrl[0] != "") {
                     if (!mContentAdapter.isExist(fileUrl[0])) {
                         String downloadedFileName = fileUrl[0].substring(fileUrl[0].lastIndexOf('/')+1);
+                        File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
-                        mContentAdapter.addItem(downloadedFileName, fileUrl[0],false);
+                        mContentAdapter.addItem(downloadedFileName, filePath.getPath(),false);
                         mContentAdapter.notifyDataSetChanged();
                     }
                 }
@@ -317,12 +307,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 if (fileUrl[0] != "") {
                     if (!mContentAdapter.isExist(fileUrl[0])) {
                         String downloadedFileName = fileUrl[0].substring(fileUrl[0].lastIndexOf('/')+1);
+                        File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
-                        mContentAdapter.addItem(downloadedFileName, fileUrl[0],true);
+                        mContentAdapter.addItem(downloadedFileName, filePath.getPath(),true);
                         mContentAdapter.notifyDataSetChanged();
                     }
 
-                    Log.d("!!!!!---!!!!!! Updated ", fileUrl[0]);
                     fogos.ContentUpdate();
 
                     // TODO: send register message
@@ -339,7 +329,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 EditText urlInput = view.findViewById(R.id.content_url);
                 fileUrl[0] = urlInput.getText().toString();
 
-                fileUrl[0] = "https://hyeonmin-lee.github.io/files/HyeonminLee_cv.pdf";
+                fileUrl[0] = "https://mmlab.snu.ac.kr/html/publications/docs/lee-2020-dane.pdf";
                 Log.d("!!!!!!!!!!!!!!!!!!!!! ", fileUrl[0]);
 
                 File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
