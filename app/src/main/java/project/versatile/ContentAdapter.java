@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import FogOSContent.Content;
+
 public class ContentAdapter extends BaseAdapter {
 
     private ArrayList<ContentListViewItem> listViewItemList = new ArrayList<ContentListViewItem>();
@@ -25,7 +27,7 @@ public class ContentAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public ContentListViewItem getItem(int position) {
         return listViewItemList.get(position);
     }
 

@@ -76,6 +76,8 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
         fogos = new FogOSClient(Environment.getExternalStorageDirectory().getPath());
 
+        fogos.begin();
+
         // Generate the list with the search bar
         setContentView(R.layout.activity_main);
         editSearch = (EditText) findViewById(R.id.editText);
@@ -151,8 +153,8 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 if (cb.isChecked()) {
                     mContentAdapter.changeShared(position, true);
 
-                    // TODO: send register message
-
+                    // send register message
+                    fogos.addContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath());
                 } else {
                     mContentAdapter.changeShared(position, false);
 
@@ -164,12 +166,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
     void genContentList() {
 
-        // 테스트 아이템 생성
-        mContentAdapter.addItem("picture_1", "/storage/emulated/0/Pictures", true);
-        mContentAdapter.addItem("picture_2", "/storage/emulated/0/Pictures", false);
-        mContentAdapter.addItem("picture_3", "/storage/emulated/0/Pictures", true);
-
-        /*
         Content[] contentList = fogos.getContentList();
 
         String a = "A";
@@ -177,7 +173,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
             Content d = contentList[i];
             mContentAdapter.addItem(d.getName(), d.getPath(), d.isShared());
         }
-        */
+
 
     }
 
