@@ -154,7 +154,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
                     mContentAdapter.changeShared(position, true);
 
                     // send register message
-                    fogos.addContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath());
+                    fogos.registerContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath());
                 } else {
                     mContentAdapter.changeShared(position, false);
 
@@ -278,7 +278,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
         progressBar = (ProgressBar)view.findViewById(R.id.progressBar);
         percent = (TextView)view.findViewById(R.id.progressPercent);
 
-
         builder.setView(view);
         builder.setTitle("컨텐츠 추가").setMessage("\n컨텐츠의 URL을 입력하세요");
         builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
@@ -307,12 +306,11 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
                         mContentAdapter.addItem(downloadedFileName, filePath.getPath(),true);
                         mContentAdapter.notifyDataSetChanged();
+
+                        // TODO: send register message
+                        fogos.ContentUpdate();
+                        fogos.registerContent(downloadedFileName, filePath.getPath() + "/" + downloadedFileName);
                     }
-
-                    fogos.ContentUpdate();
-
-                    // TODO: send register message
-
                 }
             }
         });
@@ -326,11 +324,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 fileUrl[0] = urlInput.getText().toString();
 
                 fileUrl[0] = "https://mmlab.snu.ac.kr/html/publications/docs/lee-2020-dane.pdf";
+                fileUrl[0] = "https://mmlab.snu.ac.kr/html/publications/docs/icwsm17_jyhan.pdf";
                 Log.d("!!!!!!!!!!!!!!!!!!!!! ", fileUrl[0]);
 
                 File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 String downloadFileName = fileUrl[0].substring(fileUrl[0].lastIndexOf('/'), fileUrl[0].length());
-                File outputFile = new File(filePath + "/" + downloadFileName);
+                File outputFile = new File(filePath     + "/" + downloadFileName);
 
                 // TODO: Must remove this code;
                 outputFile.delete();
@@ -457,6 +456,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Long size) {
+            fogos.ContentUpdate();
             super.onPostExecute(size);
         }
     }
