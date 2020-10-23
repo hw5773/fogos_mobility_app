@@ -3,6 +3,7 @@ package project.versatile;
 import android.net.Uri;
 import android.util.Log;
 
+import FogOSSecurity.SecureFlexIDSession;
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -20,7 +21,7 @@ import FogOSSocket.FlexIDSession;
 
 public class FogOsDataSource extends BaseDataSource {
 
-    private FlexIDSession session = null;
+    private SecureFlexIDSession session = null;
     private int limit = 0;
     private int count = 2048;
     private int total = 0;
@@ -70,13 +71,13 @@ public class FogOsDataSource extends BaseDataSource {
         this(maxPacketSize, DEFAULT_SOCKET_TIMEOUT_MILLIS);
     }
     
-    public FogOsDataSource(FlexIDSession session, int limit) {
+    public FogOsDataSource(SecureFlexIDSession session, int limit) {
         this(DEFAULT_MAX_PACKET_SIZE);
         this.session = session;
         this.limit = limit;
     }
 
-    public FogOsDataSource(FlexIDSession session, int limit, int maxPacketSize) {
+    public FogOsDataSource(SecureFlexIDSession session, int limit, int maxPacketSize) {
         this(maxPacketSize);
         this.session = session;
         this.limit = limit;
@@ -112,27 +113,35 @@ public class FogOsDataSource extends BaseDataSource {
             }
         } catch (IOException e) {
             throw new FogOsDataSourceException(e);
-        }*/
+        }
         // Log.e("mckwak", "opened");
-
+        */
         opened = true;
+
         return C.LENGTH_UNSET;
     }
 
     @Override
     public int read(byte[] buffer, int offset, int readLength) throws FogOsDataSourceException {
-        // Log.e("mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
+        Log.e("mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
         if (readLength == 0) {
             return 0;
         }
+
+        System.out.println("SSSSSSSSSSSSSSSSSs");
+
+        System.out.println(new String(packetBuffer).trim());
+        System.out.println(new String(buffer).trim());
+
         if (packetRemaining == 0) {
             // We've read all of the data from the current packet. Get another.
-            count = session.receive(packetBuffer);
+            count = session.recv(packetBuffer, packetBuffer.length);
             while (count <= 0)
-                count = session.receive(packetBuffer);
+                count = session.recv(packetBuffer, packetBuffer.length);
+
             total += count;
             packetRemaining = count;
-            // Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
+            Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
             Log.e("FogOSDataSource", "downloaded bytes: " + total);
         }
         int packetOffset = count - packetRemaining;
@@ -140,6 +149,8 @@ public class FogOsDataSource extends BaseDataSource {
         System.arraycopy(packetBuffer, packetOffset, buffer, offset, bytesToRead);
         packetRemaining -= bytesToRead;
         // Log.e("mckwak", "packetOffset: " + packetOffset + " bytesToRead: " + bytesToRead + " packetRemaining: " + packetRemaining);
+
+
         return bytesToRead;
     }
 

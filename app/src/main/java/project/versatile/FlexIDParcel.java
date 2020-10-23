@@ -18,6 +18,7 @@ import FlexID.Value;
 public class FlexIDParcel implements Parcelable {
     private static final String TAG="FogOSData";
     private FlexID id;
+    private FlexID myId;
 
     public FlexIDParcel(FlexID id)
     {

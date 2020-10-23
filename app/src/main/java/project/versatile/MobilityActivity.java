@@ -55,6 +55,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -247,12 +251,19 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         return new ProgressiveMediaSource.Factory(httpSourceFactory).createMediaSource(uri);
     }
 
-    private MediaSource prepareExoplayerFromFogOsSocket(FlexIDSession session, int limit) {
+    private MediaSource prepareExoplayerFromFogOsSocket(SecureFlexIDSession session, int limit) {
         String sample = "udp://147.47.208.67:5556"; // meaningless
+
+        sample = "http://52.78.23.173/dash/test_input.mp4";
+
+        //sample = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+        Log.d(TAG,"VVVVVVVVVVVVVVVVV");
+
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);
 
-        FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit, MAX_PACKET_SIZE);
+        FogOsDataSource fogOsDataSource = new FogOsDataSource(secureFlexIDSession, limit, MAX_PACKET_SIZE);
         try {
             fogOsDataSource.open(dataSpec);
         } catch (FogOsDataSource.FogOsDataSourceException e) {
@@ -262,6 +273,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         DataSource.Factory factory = () -> fogOsDataSource;
         MediaSource mediaSource = new ExtractorMediaSource(fogOsDataSource.getUri(), factory,
                 new DefaultExtractorsFactory(), null, null);
+        Log.d(TAG,"VVVVVVVVVVVVVVVVV2222");
+
         return mediaSource;
     }
 
@@ -469,14 +482,34 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         @Override
         public void run() {
-            session = new FlexIDSession(myID, peer, null, true);
-            sessionLogger = session.getSessionLogger();
-            //secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
-            //sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
-            //secureFlexIDSession.doHandshake();
+            //session = new FlexIDSession(myID, peer, null, true);
+
+            try {
+                secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (SignatureException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            }
+            try {
+                int ret = secureFlexIDSession.doHandshake(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //sessionLogger = session.getSessionLogger();
+            sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
             int limit = 1056768;
+
+            Log.d(TAG, "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+            Log.d(TAG, "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+
             runOnUiThread(() -> {
-                player.prepare(prepareExoplayerFromFogOsSocket(session, limit));
+                player.prepare(prepareExoplayerFromFogOsSocket(secureFlexIDSession, limit));
 
                 // player.prepare(getMediaSourceFromHttp());
                 player.setPlayWhenReady(true);

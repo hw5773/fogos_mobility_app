@@ -43,7 +43,9 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class FogOSMobilityClient extends AppCompatActivity {
@@ -68,11 +70,17 @@ public class FogOSMobilityClient extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        permissionCheck();
+        try {
+            permissionCheck();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
     }
 
 
-    public void initialize() {
+    public void initialize() throws IOException, NoSuchAlgorithmException {
 
         fogos = new FogOSClient(Environment.getExternalStorageDirectory().getPath());
 
@@ -124,17 +132,22 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
                 // TODO: We should change the test message below
                 // fogos.sendRequestMessage(requestMessage);
-                fogos.testRequestMessage(requestMessage);
-
+                try {
+                    fogos.proxyRequestMessage(requestMessage);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                }
                 do {
                     responseMessage = fogos.getResponseMessage();
                 } while (responseMessage == null);
                 peer = responseMessage.getPeerID();
                 // For Test
-                Locator loc = new Locator(InterfaceType.ETH, "147.46.114.86", 5556);
+                Locator loc; // new Locator(InterfaceType.ETH, "147.46.114.86", 5556);
+                loc = peer.getLocator();
                 peer.setLocator(loc);
                 Log.d(TAG, "After requesting the connection with the peer's Flex ID: " + peer.getStringIdentity() + "IP: " + peer.getLocator().getAddr() + " / Port: " + peer.getLocator().getPort());
-
 
                 FlexIDParcel data = new FlexIDParcel(peer);
                 Log.d(TAG, "After making the peer's Flex ID parcelable");
@@ -151,10 +164,12 @@ public class FogOSMobilityClient extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 CheckBox cb = (CheckBox)view.findViewById(R.id.contentCheckBox);
                 if (cb.isChecked()) {
-                    mContentAdapter.changeShared(position, true);
+                    addAttrDialog(FogOSMobilityClient.this, position, cb);
+
+                    //mContentAdapter.changeShared(position, true);
 
                     // send register message
-                    fogos.registerContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath());
+                    //fogos.registerContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath());
                 } else {
                     mContentAdapter.changeShared(position, false);
 
@@ -177,7 +192,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
     }
 
-    public void permissionCheck() {
+    public void permissionCheck() throws IOException, NoSuchAlgorithmException {
         ArrayList<String> permissions = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -196,15 +211,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
         } else {
             initialize();
         }
-
-        /*if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSON_REQUEST);
-            }
-        } else {
-            initialize();
-        }*/
     }
 
     @Override
@@ -212,7 +218,13 @@ public class FogOSMobilityClient extends AppCompatActivity {
         switch (requestCode) {
             case PERMISSON_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    initialize();
+                    try {
+                        initialize();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     Toast.makeText(this, "No permission granted", Toast.LENGTH_LONG).show();
                 }
@@ -232,20 +244,22 @@ public class FogOSMobilityClient extends AppCompatActivity {
         Log.d(TAG, "Count: " + count);
 
         // Prepare the query message
-        keywords = editSearch.getText().toString();
+        keywords = editSearch.  getText().toString();
         Log.d(TAG, "Keyword: " + keywords);
 
         // input "test" for keywords, then the mock value will be returned.
-        queryMessage = fogos.makeQueryMessage(keywords);
+        queryMessage = fogos.makeQueryMessage("Content", "Video", "resolution", true, 10);
+        queryMessage.setAttribute("keyword", keywords, "", "");
         Log.d(TAG, "queryMessage: " + queryMessage);
 
-        // TODO: Send the query message and get the reply message
-        // fogos.sendQueryMessage(queryMessage);
-        fogos.testQueryMessage(queryMessage);
+        fogos.sendQueryMessage(queryMessage);
+        //fogos.testQueryMessage(queryMessage);
+
         do {
             replyMessage = fogos.getReplyMessage();
         } while (replyMessage == null);
         Log.d(TAG, "replyMessage: " + replyMessage);
+
 
         // TODO: ID List should be more abstracted.
         replyList = replyMessage.getReplyList();
@@ -266,6 +280,41 @@ public class FogOSMobilityClient extends AppCompatActivity {
         }
     }
 
+    private void addAttrDialog(Context c, int position, CheckBox cb) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(c);
+
+        final LayoutInflater inflater = this.getLayoutInflater();
+        final View view = inflater.inflate(R.layout.layout_add_attr, null);
+        builder.setView(view);
+        builder.setTitle("속성 추가").setMessage("\n제목과 설명을 입력하세요");
+        builder.setPositiveButton("등록", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                EditText titleInput = view.findViewById(R.id.attr_title);
+                String title = titleInput.getText().toString();
+                EditText descInput = view.findViewById(R.id.attr_desc);
+                String desc = titleInput.getText().toString();
+
+                HashMap<String, String> attributes = new HashMap<String, String>();
+                attributes.put("title", title);
+                attributes.put("desc", desc);
+
+                fogos.registerContent(mContentAdapter.getItem(position).getName(), mContentAdapter.getItem(position).getPath(), attributes);
+                mContentAdapter.changeShared(position, true);
+            }
+        });
+
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                cb.setChecked(false);
+            }
+        });
+
+        builder.show();
+
+    }
+
     private void addItemDialog(Context c) {
         AlertDialog.Builder builder = new AlertDialog.Builder(c);
 
@@ -280,22 +329,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
         builder.setView(view);
         builder.setTitle("컨텐츠 추가").setMessage("\n컨텐츠의 URL을 입력하세요");
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (fileUrl[0] != "") {
-                    if (!mContentAdapter.isExist(fileUrl[0])) {
-                        String downloadedFileName = fileUrl[0].substring(fileUrl[0].lastIndexOf('/')+1);
-                        File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-
-                        mContentAdapter.addItem(downloadedFileName, filePath.getPath(),false);
-                        mContentAdapter.notifyDataSetChanged();
-                    }
-                }
-                dialog.cancel();
-            }
-        });
-        builder.setPositiveButton("등록", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
@@ -306,10 +340,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
                         mContentAdapter.addItem(downloadedFileName, filePath.getPath(),true);
                         mContentAdapter.notifyDataSetChanged();
-
-                        // TODO: send register message
-                        fogos.ContentUpdate();
-                        fogos.registerContent(downloadedFileName, filePath.getPath() + "/" + downloadedFileName);
                     }
                 }
             }
@@ -324,7 +354,6 @@ public class FogOSMobilityClient extends AppCompatActivity {
                 fileUrl[0] = urlInput.getText().toString();
 
                 fileUrl[0] = "https://mmlab.snu.ac.kr/html/publications/docs/lee-2020-dane.pdf";
-                fileUrl[0] = "https://mmlab.snu.ac.kr/html/publications/docs/icwsm17_jyhan.pdf";
                 Log.d("!!!!!!!!!!!!!!!!!!!!! ", fileUrl[0]);
 
                 File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -456,7 +485,13 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Long size) {
-            fogos.ContentUpdate();
+            try {
+                fogos.ContentUpdate();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
             super.onPostExecute(size);
         }
     }
