@@ -9,13 +9,19 @@ import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.BaseDataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.upstream.HttpDataSource;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import FogOSSocket.FlexIDSession;
 
@@ -36,10 +42,10 @@ public class FogOsDataSource extends BaseDataSource {
     /**
      * The default maximum datagram packet size, in bytes.
      */
-    public static final int DEFAULT_MAX_PACKET_SIZE = 2048;
+    public static final int DEFAULT_MAX_PACKET_SIZE = 20000;
 
     /** The default socket timeout, in milliseconds. */
-    public static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 8 * 1000;
+    public static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 20 * 1000;
 
     private final int socketTimeoutMillis;
     private final byte[] packetBuffer;
@@ -98,7 +104,7 @@ public class FogOsDataSource extends BaseDataSource {
     }
 
     @Override
-    public long open(DataSpec dataSpec) throws FogOsDataSourceException {
+    public long open(DataSpec dataSpec)  {
         uri = dataSpec.uri;
         /*
         try {
@@ -116,22 +122,28 @@ public class FogOsDataSource extends BaseDataSource {
         }
         // Log.e("mckwak", "opened");
         */
-        opened = true;
 
+        if (!opened) {
+            String a = "GET  /dash/test_input.mp4  HTTP/1.1 \nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\n\n";
+            System.out.println(a.length());
+            try {
+                session.send(a);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        opened = true;
         return C.LENGTH_UNSET;
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int readLength) throws FogOsDataSourceException {
+    public int read(byte[] buffer, int offset, int readLength) throws IOException {
         Log.e("mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
+
         if (readLength == 0) {
             return 0;
         }
-
-        System.out.println("SSSSSSSSSSSSSSSSSs");
-
-        System.out.println(new String(packetBuffer).trim());
-        System.out.println(new String(buffer).trim());
 
         if (packetRemaining == 0) {
             // We've read all of the data from the current packet. Get another.
@@ -150,8 +162,8 @@ public class FogOsDataSource extends BaseDataSource {
         packetRemaining -= bytesToRead;
         // Log.e("mckwak", "packetOffset: " + packetOffset + " bytesToRead: " + bytesToRead + " packetRemaining: " + packetRemaining);
 
-
         return bytesToRead;
+
     }
 
     @Nullable

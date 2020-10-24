@@ -256,23 +256,19 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         sample = "http://52.78.23.173/dash/test_input.mp4";
 
-        //sample = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
-        Log.d(TAG,"VVVVVVVVVVVVVVVVV");
-
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);
 
-        FogOsDataSource fogOsDataSource = new FogOsDataSource(secureFlexIDSession, limit, MAX_PACKET_SIZE);
-        try {
-            fogOsDataSource.open(dataSpec);
-        } catch (FogOsDataSource.FogOsDataSourceException e) {
-            e.printStackTrace();
-        }
+        FogOsDataSource fogOsDataSource = new FogOsDataSource(session, limit, MAX_PACKET_SIZE);
+        fogOsDataSource.open(dataSpec);
+
 
         DataSource.Factory factory = () -> fogOsDataSource;
         MediaSource mediaSource = new ExtractorMediaSource(fogOsDataSource.getUri(), factory,
                 new DefaultExtractorsFactory(), null, null);
+
+        //MediaSource mediaSource = new ProgressiveMediaSource.Factory(factory).createMediaSource(fogOsDataSource.getUri());
+
         Log.d(TAG,"VVVVVVVVVVVVVVVVV2222");
 
         return mediaSource;
@@ -505,15 +501,13 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             sessionLogger = secureFlexIDSession.getFlexIDSession().getSessionLogger();
             int limit = 1056768;
 
-            Log.d(TAG, "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-            Log.d(TAG, "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
-
             runOnUiThread(() -> {
                 player.prepare(prepareExoplayerFromFogOsSocket(secureFlexIDSession, limit));
 
                 // player.prepare(getMediaSourceFromHttp());
                 player.setPlayWhenReady(true);
             });
+
             /*
             try {
                 if (tempFile.exists()) {
