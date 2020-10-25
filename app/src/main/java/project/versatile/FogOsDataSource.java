@@ -42,7 +42,7 @@ public class FogOsDataSource extends BaseDataSource {
     /**
      * The default maximum datagram packet size, in bytes.
      */
-    public static final int DEFAULT_MAX_PACKET_SIZE = 20000;
+    public static final int DEFAULT_MAX_PACKET_SIZE = 30000;
 
     /** The default socket timeout, in milliseconds. */
     public static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 20 * 1000;
@@ -128,7 +128,7 @@ public class FogOsDataSource extends BaseDataSource {
         */
 
         if (!opened) {
-            String a = "GET /dash/test_input.mp4 HTTP/1.1\r\nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\r\n";
+            String a = "GET /dash/sample.mp4 HTTP/1.1\r\nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\r\n";
             System.out.println(a.length());
             try {
                 session.send(a);
@@ -163,7 +163,7 @@ public class FogOsDataSource extends BaseDataSource {
                 String key = null;
                 String value = null;
                 int idx = 0, colon = 0;
-                Log.e("mckwak", "Header: " + tmp);
+                //Log.e("mckwak", "Header: " + tmp);
                 do {
                     //Log.e("mckwak", "Header: " + tmp);
                     idx = tmp.indexOf("\r\n");
@@ -177,24 +177,24 @@ public class FogOsDataSource extends BaseDataSource {
                     if (colon > 0) {
                         key = avp.substring(0, colon).trim();
                         value = avp.substring(colon + 1, idx).trim();
-                        Log.e("mckwak", "key: "+ key);
-                        Log.e("mckwak", "value: " + value);
+                        //Log.e("mckwak", "key: "+ key);
+                        //Log.e("mckwak", "value: " + value);
                         if (key.equals("Content-Length")) {
                             total = Integer.parseInt(value);
-                            Log.e("mckwak", "Total Content Length: " + total);
+                            //Log.e("mckwak", "Total Content Length: " + total);
                         }
                     }
 
                     tmp = tmp.substring(idx + 2);
                 } while (true);
                 packetRemaining -= this.headerLength;
-                Log.e("mckwak", "Header Length: " + this.headerLength);
+                //Log.e("mckwak", "Header Length: " + this.headerLength);
             }
 
-            Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
-            Log.e("mckwak", "First 5 bytes: " + packetBuffer[0] + " " + packetBuffer[1] + " " + packetBuffer[2] + " " + packetBuffer[3] + " " + packetBuffer[4]);
-            Log.e("mckwak", "Last 5 bytes: " + packetBuffer[count-5] + " " + packetBuffer[count-4] + " " + packetBuffer[count-3] + " " + packetBuffer[count-2] + " " + packetBuffer[count-1]);
-            Log.e("FogOSDataSource", "downloaded bytes: " + total);
+            //Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
+            //Log.e("mckwak", "First 5 bytes: " + packetBuffer[0] + " " + packetBuffer[1] + " " + packetBuffer[2] + " " + packetBuffer[3] + " " + packetBuffer[4]);
+            //Log.e("mckwak", "Last 5 bytes: " + packetBuffer[count-5] + " " + packetBuffer[count-4] + " " + packetBuffer[count-3] + " " + packetBuffer[count-2] + " " + packetBuffer[count-1]);
+            //Log.e("FogOSDataSource", "downloaded bytes: " + total);
         }
         int packetOffset = count - packetRemaining;
         int bytesToRead = Math.min(packetRemaining, readLength);

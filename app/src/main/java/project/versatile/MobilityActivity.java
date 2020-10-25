@@ -67,7 +67,7 @@ import java.util.TimerTask;
 
 public class MobilityActivity extends AppCompatActivity implements TransferListener {
     private static final String TAG = "FogOSMobilityActivity";
-    private static final int MAX_PACKET_SIZE = 32768;
+    private static final int MAX_PACKET_SIZE = 20000;
     private static int counter = 0;
     private static boolean ready = false;
     private TimerTask task;
@@ -254,7 +254,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     private MediaSource prepareExoplayerFromFogOsSocket(SecureFlexIDSession session, int limit) {
         String sample = "udp://147.47.208.67:5556"; // meaningless
 
-        sample = "http://52.78.23.173/dash/test_input.mp4";
+        //sample = "http://52.78.23.173/dash/test_input.mp4";
+        sample = "http://52.78.23.173/dash/sample.mp4"; // meaningless please see open function in FogOsDataSource.java
 
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);

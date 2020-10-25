@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import FogOSContent.Content;
 
 public class ContentAdapter extends BaseAdapter {
 

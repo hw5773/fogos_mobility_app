@@ -35,6 +35,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     //implementation files('C:\\Users\\HMLEE\\FogOSCore.jar')
     implementation files('libs\\org.eclipse.paho.client.mqttv3-1.1.0.jar')
+    implementation files('libs\\FogOSCore.jar')
 }
 
 repositories {
