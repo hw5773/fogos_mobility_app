@@ -15,6 +15,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#000000"
+        android:layout_marginLeft="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" android:id="@+id/title"/>
 
@@ -22,6 +23,7 @@
         android:text="내용"
         android:textSize="15sp"
         android:textColor="#000000"
+        android:layout_marginLeft="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:id="@+id/desc"/>
 
