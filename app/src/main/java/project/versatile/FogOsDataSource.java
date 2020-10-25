@@ -63,6 +63,8 @@ public class FogOsDataSource extends BaseDataSource {
     private boolean opened;
 
     private int packetRemaining;
+    private int headerLength = 0;
+    private boolean headerRemoved = false;
 
     public FogOsDataSource() {
         this(DEFAULT_MAX_PACKET_SIZE);
@@ -81,12 +83,14 @@ public class FogOsDataSource extends BaseDataSource {
         this(DEFAULT_MAX_PACKET_SIZE);
         this.session = session;
         this.limit = limit;
+        this.packetRemaining = 0;
     }
 
     public FogOsDataSource(SecureFlexIDSession session, int limit, int maxPacketSize) {
         this(maxPacketSize);
         this.session = session;
         this.limit = limit;
+        this.packetRemaining = 0;
     }
 
     /**
@@ -124,7 +128,7 @@ public class FogOsDataSource extends BaseDataSource {
         */
 
         if (!opened) {
-            String a = "GET  /dash/test_input.mp4  HTTP/1.1 \nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\n\n";
+            String a = "GET /dash/test_input.mp4 HTTP/1.1\r\nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\r\n";
             System.out.println(a.length());
             try {
                 session.send(a);
@@ -147,13 +151,49 @@ public class FogOsDataSource extends BaseDataSource {
 
         if (packetRemaining == 0) {
             // We've read all of the data from the current packet. Get another.
-            count = session.recv(packetBuffer, packetBuffer.length);
-            while (count <= 0)
+            do {
                 count = session.recv(packetBuffer, packetBuffer.length);
+            } while (count <= 0);
 
-            total += count;
             packetRemaining = count;
+
+            if (headerRemoved == false) {
+                String tmp = new String(packetBuffer);
+                String avp = null;
+                String key = null;
+                String value = null;
+                int idx = 0, colon = 0;
+                Log.e("mckwak", "Header: " + tmp);
+                do {
+                    //Log.e("mckwak", "Header: " + tmp);
+                    idx = tmp.indexOf("\r\n");
+                    this.headerLength += idx + 2;
+                    if (idx == 0) {
+                        headerRemoved = true;
+                        break;
+                    }
+                    avp = tmp.substring(0, idx);
+                    colon = avp.indexOf(":");
+                    if (colon > 0) {
+                        key = avp.substring(0, colon).trim();
+                        value = avp.substring(colon + 1, idx).trim();
+                        Log.e("mckwak", "key: "+ key);
+                        Log.e("mckwak", "value: " + value);
+                        if (key.equals("Content-Length")) {
+                            total = Integer.parseInt(value);
+                            Log.e("mckwak", "Total Content Length: " + total);
+                        }
+                    }
+
+                    tmp = tmp.substring(idx + 2);
+                } while (true);
+                packetRemaining -= this.headerLength;
+                Log.e("mckwak", "Header Length: " + this.headerLength);
+            }
+
             Log.e("mckwak", "count: " + count + " packetBuffer: " + MobilityActivity.byteArrayToHex(packetBuffer, 16));
+            Log.e("mckwak", "First 5 bytes: " + packetBuffer[0] + " " + packetBuffer[1] + " " + packetBuffer[2] + " " + packetBuffer[3] + " " + packetBuffer[4]);
+            Log.e("mckwak", "Last 5 bytes: " + packetBuffer[count-5] + " " + packetBuffer[count-4] + " " + packetBuffer[count-3] + " " + packetBuffer[count-2] + " " + packetBuffer[count-1]);
             Log.e("FogOSDataSource", "downloaded bytes: " + total);
         }
         int packetOffset = count - packetRemaining;
