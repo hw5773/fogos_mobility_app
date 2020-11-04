@@ -128,10 +128,11 @@ public class FogOsDataSource extends BaseDataSource {
         */
 
         if (!opened) {
-            String a = "GET /dash/sample.mp4 HTTP/1.1\r\nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\r\n";
-            System.out.println(a.length());
+            String msg = "GET /dash/sample.mp4 HTTP/1.1\r\nConnection: keep-alive\r\nHost: 52.78.23.173\r\n\r\n";
+
+            System.out.println(msg.length());
             try {
-                session.send(a);
+                session.send(msg);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }

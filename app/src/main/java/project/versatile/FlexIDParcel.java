@@ -25,6 +25,8 @@ public class FlexIDParcel implements Parcelable {
         this.id = id;
     }
 
+    // pass FogOSClient
+
     public FlexIDParcel(Parcel src) {
         id = new FlexID();
         String sidentity;

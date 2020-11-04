@@ -18,6 +18,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 
 public class MobilityActivity extends AppCompatActivity implements TransferListener {
@@ -157,12 +159,20 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         Intent intent = getIntent();
         Log.d(TAG, "Before processing the intent");
 
-        processIntent(intent);
+        try {
+            processIntent(intent);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     // Function that is invoked when the button is clicked
-    public void onButton2Clicked(View v) {
+    public void onButton2Clicked(View v) throws InterruptedException {
         if (flag == false) {
+
+
             Log.d(TAG, "실험 시작");
             flag = true;
             startBtn.setText("실험 종료");
@@ -195,6 +205,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
             //player.prepare(getMediaSourceFromByteArray(b));
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
+
         }
         else {
             flag = false;
@@ -254,8 +265,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     private MediaSource prepareExoplayerFromFogOsSocket(SecureFlexIDSession session, int limit) {
         String sample = "udp://147.47.208.67:5556"; // meaningless
 
-        //sample = "http://52.78.23.173/dash/test_input.mp4";
-        sample = "http://52.78.23.173/dash/sample.mp4"; // meaningless please see open function in FogOsDataSource.java
+        sample = "http://52.78.23.173/dash/lecture.mp4"; // meaningless please see open function in FogOsDataSource.java
 
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);
@@ -270,12 +280,11 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
         //MediaSource mediaSource = new ProgressiveMediaSource.Factory(factory).createMediaSource(fogOsDataSource.getUri());
 
-        Log.d(TAG,"VVVVVVVVVVVVVVVVV2222");
-
         return mediaSource;
     }
 
-    private void processIntent(Intent intent) {
+    private void processIntent(Intent intent) throws InterruptedException {
+
         Log.d(TAG, "Starting processing the intent");
         if (intent != null) {
             Log.d(TAG, "Getting the extras from the bundle");
@@ -298,6 +307,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
                 textView3.setText(new String(peer.getIdentity()));
                 Log.d(TAG, "Before setting the textView 4");
                 textView4.setText(peer.getLocator().getAddr());
+
+
             } catch (Exception e) {
                 Log.d(TAG, "Exception: " + Log.getStackTraceString(e));
             }
@@ -313,18 +324,19 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     }
 
     /* Test Code to change the WiFi setting */
-    /*
-    private void changeWifiSetting() {
+
+    private void changeWifiSetting() throws InterruptedException {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Activity.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         String ssid = wifiInfo.getSSID();
-        String newSsid = "FogOS2";
-        String pass = "mmlab2015";
+        String newSsid = "mmlab_2_4G";
+        String pass = "mmlabmmlab";
         WifiConfiguration conf = new WifiConfiguration();
         conf.SSID = "\"" + newSsid + "\"";
         conf.preSharedKey = "\"" + pass + "\"";
 
         //int ret = wifiManager.updateNetwork(conf);
+
 
         Log.d(TAG, "Current SSID: " + ssid);
         //Log.d(TAG, "Return Value: " + ret);
@@ -347,10 +359,10 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             // Toast.makeText(getApplicationContext(), "Now send MapUpdate message to Peer and Flex ID Manager", Toast.LENGTH_LONG).show();
         }
     }
-    */
+
 
     // Get a new item for the listview
-    private void handleMessage(Message msg) {
+    private void handleMessage(Message msg) throws InterruptedException {
         int numOfLog = 0;
         if (sessionLogger == null) {
             Log.d(TAG, "SessionLogger is null");
@@ -371,12 +383,12 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
                 }
 
                 // Test Code: Changing the AP to the other one.
-                /*
+
                 if ((change == false) && (logListAdapter.getCount() > 0)) {
-                    //changeWifiSetting();
+                    changeWifiSetting();
                     change = true;
                 }
-                */
+
                 logListView.setAdapter(logListAdapter);
             }
         }
@@ -481,8 +493,14 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         public void run() {
             //session = new FlexIDSession(myID, peer, null, true);
 
+            System.out.println(peer.getLocator().getAddr() + " " + peer.getLocator().getPort());
             try {
                 secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+
+                System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+                System.out.println(secureFlexIDSession.getFlexIDSession().getSFID().getLocator().getAddr());
+                System.out.println(secureFlexIDSession.getFlexIDSession().getDFID().getLocator().getAddr());
+
             } catch (InvalidKeySpecException e) {
                 e.printStackTrace();
             } catch (NoSuchAlgorithmException e) {
@@ -562,7 +580,11 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         public void handleMessage(Message msg) {
             MobilityActivity activity = mActivity.get();
             if (activity != null) {
-                activity.handleMessage(msg);
+                try {
+                    activity.handleMessage(msg);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
