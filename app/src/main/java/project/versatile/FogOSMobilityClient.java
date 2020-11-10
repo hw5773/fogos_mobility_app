@@ -62,6 +62,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
     private ListView mListView;
     private ContentAdapter mContentAdapter;
+    private GlobalFogOS globalFogOSClass;
 
     TextView percent;
     ProgressBar progressBar;
@@ -69,6 +70,7 @@ public class FogOSMobilityClient extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.globalFogOSClass = (GlobalFogOS) getApplication();
 
         try {
             permissionCheck();
@@ -82,10 +84,14 @@ public class FogOSMobilityClient extends AppCompatActivity {
 
     public void initialize() throws IOException, NoSuchAlgorithmException {
 
+
         fogos = new FogOSClient(Environment.getExternalStorageDirectory().getPath());
 
+        this.globalFogOSClass.setFogOSClient(fogos);
+//        fogos.begin();
+        fogos = this.globalFogOSClass.getFogOSClient();
         fogos.begin();
-
+//
         // Generate the list with the search bar
         setContentView(R.layout.activity_main);
         editSearch = (EditText) findViewById(R.id.editText);

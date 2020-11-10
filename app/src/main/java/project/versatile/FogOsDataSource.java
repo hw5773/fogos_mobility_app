@@ -107,6 +107,7 @@ public class FogOsDataSource extends BaseDataSource {
         packet = new DatagramPacket(packetBuffer, 0, maxPacketSize);
     }
 
+
     @Override
     public long open(DataSpec dataSpec)  {
         uri = dataSpec.uri;
@@ -144,7 +145,7 @@ public class FogOsDataSource extends BaseDataSource {
 
     @Override
     public int read(byte[] buffer, int offset, int readLength) throws IOException {
-        Log.e("mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
+        Log.e("??? mckwak","offset: " + offset + " readLength: " + readLength + " packetRemaining: " + packetRemaining);
 
         if (readLength == 0) {
             return 0;
