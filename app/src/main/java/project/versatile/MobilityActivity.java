@@ -2,6 +2,8 @@ package project.versatile;
 
 import FlexID.FlexID;
 import FlexID.FlexIDFactory;
+import FogOSClient.FogOSClient;
+import FogOSMessage.MapUpdateMessage;
 import FogOSSecurity.Role;
 import FogOSSecurity.SecureFlexIDSession;
 import FogOSSocket.FlexIDSession;
@@ -18,7 +20,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
@@ -34,28 +35,20 @@ import android.widget.Toast;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.ByteArrayDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
-import com.google.android.exoplayer2.upstream.UdpDataSource;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -64,7 +57,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 
 public class MobilityActivity extends AppCompatActivity implements TransferListener {
@@ -98,9 +90,13 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     BackgroundThread backgroundThread;
     ReceiverThread receiverThread;
     ReadyThread readyThread;
+    WifiThread wifiThread;
 
     SimpleExoPlayer player;
     PlayerView playerView;
+
+    private GlobalFogOS globalFogOSClass;
+    private FogOSClient fogos;
 
     private final LogHandler logHandler = new LogHandler(this);
 
@@ -108,6 +104,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
 
@@ -165,13 +163,13 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             e.printStackTrace();
         }
 
+        this.globalFogOSClass = (GlobalFogOS) getApplication();
 
     }
 
     // Function that is invoked when the button is clicked
     public void onButton2Clicked(View v) throws InterruptedException {
         if (flag == false) {
-
 
             Log.d(TAG, "실험 시작");
             flag = true;
@@ -206,6 +204,8 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             //player.prepare(getMediaSourceFromByteArray(b));
             Toast.makeText(this, "실험 시작", Toast.LENGTH_LONG).show();
 
+            wifiThread = new WifiThread();
+            wifiThread.start();
         }
         else {
             flag = false;
@@ -265,7 +265,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
     private MediaSource prepareExoplayerFromFogOsSocket(SecureFlexIDSession session, int limit) {
         String sample = "udp://147.47.208.67:5556"; // meaningless
 
-        sample = "http://52.78.23.173/dash/lecture.mp4"; // meaningless please see open function in FogOsDataSource.java
+        sample = "http://52.78.23.173/dash/sample.mp4"; // meaningless please see open function in FogOsDataSource.java
 
         Uri uri = Uri.parse(sample);
         DataSpec dataSpec = new DataSpec(uri);
@@ -338,6 +338,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         //int ret = wifiManager.updateNetwork(conf);
 
 
+        System.out.println("Change WIFI!!!!!!!!!!!!");
         Log.d(TAG, "Current SSID: " + ssid);
         //Log.d(TAG, "Return Value: " + ret);
 
@@ -348,10 +349,10 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         } else {
             for (WifiConfiguration i : list) {
                 if (i.SSID != null && i.SSID.equals("\"" + newSsid + "\"")) {
-                    Toast.makeText(getApplicationContext(), "Device is disconnecting from FogOS1", Toast.LENGTH_LONG).show();
-                    wifiManager.disconnect();
+                    //Toast.makeText(getApplicationContext(), "Device is disconnecting from FogOS1", Toast.LENGTH_LONG).show();
+                    //wifiManager.disconnect();
                     wifiManager.enableNetwork(i.networkId, true);
-                    Toast.makeText(getApplicationContext(), "Device is connecting to FogOS2", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getApplicationContext(), "Device is connecting to FogOS2", Toast.LENGTH_LONG).show();
                     wifiManager.reconnect();
                     break;
                 }
@@ -393,6 +394,9 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
             }
         }
     }
+
+
+
 
     @Override
     public void onTransferInitializing(DataSource source, DataSpec dataSpec, boolean isNetwork) {
@@ -453,6 +457,34 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
         }
     }
 
+    public class WifiThread extends Thread {
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(15000);
+                MapUpdateMessage msg = fogos.makeMapUpdateMessage();
+                fogos.sendMapUpdateMessage(msg);
+                Thread.sleep(3000);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            /*
+            try {
+                changeWifiSetting();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+             */
+
+
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Handling Mobility Event..", Toast.LENGTH_LONG).show());
+        }
+    }
+
     public class BackgroundThread extends Thread {
         boolean running = false;
 
@@ -486,6 +518,7 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
     class ReceiverThread extends Thread {
         boolean running = false;
+        private GlobalFogOS globalFogOSClassinThread =(GlobalFogOS) getApplication();
 
         void setRunning(boolean b) { running = b; }
 
@@ -495,7 +528,13 @@ public class MobilityActivity extends AppCompatActivity implements TransferListe
 
             System.out.println(peer.getLocator().getAddr() + " " + peer.getLocator().getPort());
             try {
-                secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+
+                fogos = this.globalFogOSClassinThread.getFogOSClient();
+
+//                secureFlexIDSession = new SecureFlexIDSession(Role.INITIATOR, myID, peer);
+
+                secureFlexIDSession = fogos.createSecureFlexIDSession(Role.INITIATOR,myID,peer);
+                session = secureFlexIDSession.getFlexIDSession();
 
                 System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
                 System.out.println(secureFlexIDSession.getFlexIDSession().getSFID().getLocator().getAddr());
